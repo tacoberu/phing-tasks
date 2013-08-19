@@ -150,7 +150,38 @@ class FsSymlinkTask extends Task
 	{
 		return $this->_filesets;
 	}
-	
+
+
+
+	/**
+	 * Main entry point for task
+	 * 
+	 * @access public
+	 * @return bool
+	 */
+	public function main()
+	{
+		$map = $this->getMap();
+		
+		// Single file symlink
+		if (is_string($map)) {
+			$this->assertLink($map);
+			return $this->symlink($map, $this->getLink());
+		}
+		
+		// Multiple symlinks
+		foreach ($map as $name => $targetPath) {
+			$this->assertLink($targetPath);
+		}
+		foreach ($map as $name => $targetPath) {
+			$this->symlink($targetPath, $this->getLink() . DIRECTORY_SEPARATOR . $name);
+		}
+		
+		return true;
+	}
+
+
+
 	/**
 	 * Generates an array of directories / files to be linked
 	 * If _filesets is empty, returns getTarget()
@@ -211,31 +242,6 @@ class FsSymlinkTask extends Task
 
 
 	/**
-	 * Main entry point for task
-	 * 
-	 * @access public
-	 * @return bool
-	 */
-	public function main()
-	{
-		$map = $this->getMap();
-		
-		// Single file symlink
-		if(is_string($map)) {
-			return $this->symlink($map, $this->getLink());
-		}
-		
-		// Multiple symlinks
-		foreach($map as $name => $targetPath) {
-			$this->symlink($targetPath, $this->getLink() . DIRECTORY_SEPARATOR . $name);
-		}
-		
-		return true;
-	}
-
-
-
-	/**
 	 * Create the actual link
 	 * 
 	 * @access protected
@@ -250,6 +256,7 @@ class FsSymlinkTask extends Task
 		if (file_exists($link) && !is_link($link)) {
 			return True;
 		}
+
 		$msg = '';
 		$target = realpath($target);
 		if (is_link($link) && $rl = readlink($link)) {
@@ -262,7 +269,22 @@ class FsSymlinkTask extends Task
 			$msg = ' (replace)';
 		}
 		
-		$this->log("Linking$msg:" . $target . ' to ' . $link, Project::MSG_INFO);
+		$this->log("Linking$msg: " . $target . ' to ' . $link, Project::MSG_INFO);
 		return $fs->symlink($target, $link);
 	}
+
+
+
+	/**
+	 * Check exist target.
+	 * @param $target
+	 */
+	protected function assertLink($target)
+	{
+		if (! file_exists($target)) {
+			throw new BuildException("Target [$target] not exists.");			
+		}
+	}
+
+
 }
