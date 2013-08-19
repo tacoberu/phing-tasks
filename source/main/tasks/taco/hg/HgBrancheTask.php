@@ -20,6 +20,8 @@ require_once "phing/Task.php";
  * HgBrancheTask
  *
  * Loads a (text) names of branches between two revision of hg.
+ *
+ * @package phing.tasks.taco
  */
 class HgBrancheTask extends Task
 {

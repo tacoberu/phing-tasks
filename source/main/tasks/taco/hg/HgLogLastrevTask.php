@@ -19,8 +19,10 @@ require_once "phing/Task.php";
 /**
  * HgLogLastrevTask
  *
- * Loads a (text) filenames between two revision of hg.
+ * Loads last revision of mercurial repozitory.
  * Supports filterchains.
+ *
+ * @package phing.tasks.taco
  */
 class HgLogLastrevTask extends Task
 {

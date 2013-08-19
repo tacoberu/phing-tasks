@@ -1,42 +1,23 @@
 <?php
 /**
- * Copyright (c) 2004, 2011 Martin Takáč
+ * This file is part of the Taco Projects.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
  *
- * @author	 Martin Takáč <taco@taco-beru.name>
+ * PHP version 5.3
+ *
+ * @author     Martin Takáč (martin@takac.name)
  */
 
 require_once 'phing/Task.php';
 
 /**
- * Task for resolving relative paths and setting absolute path in property value.
  * 
- * This task was created to address a need for resolving absolute paths of files / directories.
- * In many cases a relative directory (e.g. "./build") is specified, but it needs to be treated
- * as an absolute path since other build files (e.g. in subdirs) should all be using the same
- * path -- and not treating it as a relative path to their own directory.
  * 
- * <code>
- * <property name="relative_path" value="./dirname"/>
- * <resolvepath propertyName="absolute_path" file="${relative_path}"/>
- * <echo>Resolved [absolute] path: ${absolute_path}</echo>
- * </code>
- * 
- * TODO:
- *	  - Possibly integrate this with PackageAsPath, for handling/resolving dot-path paths.
- * 
- * @author	Hans Lellelid <hans@xmpl.org>
- * @version   $Revision: 552 $
- * @package   phing.tasks.system
+ * @package   phing.tasks.taco
  */
 class FsExistsTask extends Task
 {

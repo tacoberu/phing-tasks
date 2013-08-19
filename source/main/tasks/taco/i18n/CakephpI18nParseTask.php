@@ -21,6 +21,8 @@ require_once "phing/Task.php";
  *
  * Loads a (text) filenames between two revision of hg.
  * Supports filterchains.
+ *
+ * @package   phing.tasks.taco
  */
 class CakephpI18nParseTask extends Task
 {

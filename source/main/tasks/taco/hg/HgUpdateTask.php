@@ -16,6 +16,11 @@ require_once "phing/Task.php";
 
 
 
+/**
+ * Update mercurial repository to last revision, or last revision of branch.
+ *
+ * @package phing.tasks.taco
+ */
 class HgUpdateTask extends Task
 {
 

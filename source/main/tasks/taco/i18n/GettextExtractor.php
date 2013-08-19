@@ -1,18 +1,15 @@
 <?php
-
 /**
- * GettextExtractor
+ * This file is part of the Taco Projects.
  *
- * Cool tool for automatic extracting gettext strings for translation
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * Works best with Nette Framework
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
  *
- * This source file is subject to the New BSD License.
+ * PHP version 5.3
  *
- * @copyright  Copyright (c) 2009 Karel Klima
- * @license	New BSD License
- * @package	Nette Extras
- * @version	GettextExtractor 2.0, 2009-10-21
+ * @author     Martin Takáč (martin@takac.name)
  */
 
 namespace Taco\Tools\Gettext;
@@ -28,7 +25,6 @@ require_once __dir__ . '/filters/IFilter.php';
  *
  * @author	 Karel Klima
  * @author	 Martin Takáč
- * @copyright  Copyright (c) 2009 Karel Kl�ma
  * @package	Nette Extras
  */
 class GettextExtractor

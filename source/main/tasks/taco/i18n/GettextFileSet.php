@@ -1,22 +1,15 @@
 <?php
-/*
- *  $Id: c3ac5fcdf4d7cdb199d57b021e3f015c9c7fd3f8 $
+/**
+ * This file is part of the Taco Projects.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * This software consists of voluntary contributions made by many individuals
- * and is licensed under the LGPL. For more information please see
- * <http://phing.info>.
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
+ *
+ * PHP version 5.3
+ *
+ * @author     Martin Takáč (martin@takac.name)
  */
 
 require_once __dir__ . '/GettextExtractor.php';
@@ -27,12 +20,10 @@ include_once 'phing/mappers/MergeMapper.php';
 include_once 'phing/util/StringHelper.php';
 
 /**
- * This is a FileSet with the option to specify permissions.
+ * 
  *
- * Permissions are currently not implemented by PEAR Archive_Tar,
- * but hopefully they will be in the future.
  *
- * @package   phing.tasks.ext
+ * @package   phing.tasks.taco
  */
 class GettextFileSet extends FileSet
 {

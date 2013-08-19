@@ -19,8 +19,7 @@ require_once "phing/Task.php";
 /**
  * HgLogLastrevTask
  *
- * Loads a (text) filenames between two revision of hg.
- * Supports filterchains.
+ * @package phing.tasks.taco
  */
 class HgTagLastTask extends Task
 {
