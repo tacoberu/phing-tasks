@@ -1,22 +1,15 @@
 <?php
-/*
- *  $Id: a6b1f9af32db9ce789d4769fe0eb32dcaad8298b $
+/**
+ * This file is part of the Taco Projects.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * This software consists of voluntary contributions made by many individuals
- * and is licensed under the LGPL. For more information please see
- * <http://phing.info>.
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
+ *
+ * PHP version 5.3
+ *
+ * @author     Martin Takáč (martin@takac.name)
  */
 
 require_once 'phing/Task.php';
@@ -24,263 +17,307 @@ require_once 'phing/util/DataStore.php';
 require_once 'phing/system/io/FileWriter.php';
 
 /**
- * A PHP lint task. Checking syntax of one or more PHP source file.
+ * 
+ * Append missing files from other directories.
+ * 	<fs.merge level="verbose" method="append" outputProperty="msg">
+ * 		<fileset dir="${dir.repository}/persistence/">
+ * 			<include name="s/mysql/1/update"/>
+ * 			<include name="u/mysql/1/update"/>
+ * 			<include name="t/mysql/1/update"/>
+ * 		</fileset>
+ * 	</fs.merge>
  *
- * @author   Knut Urdalen <knut.urdalen@telio.no>
- * @author   Stefan Priebsch <stefan.priebsch@e-novative.de>
- * @version  $Id: a6b1f9af32db9ce789d4769fe0eb32dcaad8298b $
- * @package  phing.tasks.ext
+ * @package  phing.tasks.taco
  */
 class FsMergeTask extends Task
 {
 
-    protected $file;    // the source file (from xml attribute)
-    protected $filesets = array(); // all fileset objects assigned to this task
+	const METHOD_APPEND = 'append';
 
-    protected $errorProperty;
-    protected $haltOnFailure = false;
-    protected $hasErrors = false;
-    protected $badFiles = array();
-    protected $interpreter = ''; // php interpreter to use for linting
-    
-    protected $logLevel = Project::MSG_VERBOSE;
-    
-    protected $cache = null;
-    
-    protected $tofile = null;
-    
-    protected $deprecatedAsError = false;
+	/**
+	 *	all fileset objects assigned to this task
+	 */
+	protected $filesets = array();
 
+	/**
+	 *	a instance of fileutils
+	 */
+    protected $fileUtils = Null;
 
+	/**
+	 *	mode to create directories with
+	 */
+    protected $mode = 0;
 
-    /**
-     * Initialize the interpreter with the Phing property
-     */
-    public function __construct()
-    {
-        $this->setInterpreter(Phing::getProperty('php.interpreter'));
-    }
-
+	/**
+	 *	all filterchains objects assigned to this task
+	 */
+    protected $filterChains = array();
 
 
     /**
-     * Override default php interpreter
-     * @todo    Do some sort of checking if the path is correct but would 
-     *          require traversing the systems executeable path too
-     * @param   string  $sPhp
-     */
-    public function setInterpreter($sPhp)
-    {
-    print_r($sPhp);
-    die('***');
-        $this->Interpreter = $sPhp;
-    }
-
-    /**
-     * The haltonfailure property
-     * @param boolean $aValue
-     */
-    public function setHaltOnFailure($aValue) {
-        $this->haltOnFailure = $aValue;
-    }
-
-    /**
-     * File to be performed syntax check on
-     * @param PhingFile $file
-     */
-    public function setFile(PhingFile $file) {
-        $this->file = $file;
-    }
-
-    /**
-     * Set an property name in which to put any errors.
-     * @param string $propname 
-     */
-    public function setErrorproperty($propname)
-    {
-        $this->errorProperty = $propname;
-    }
-    
-    /**
-     * Whether to store last-modified times in cache
+     * Property name to set with output value from exec call.
      *
-     * @param PhingFile $file
+     * @var string
      */
-    public function setCacheFile(PhingFile $file)
-    {
-        $this->cache = new DataStore($file);
-    }
+    protected $outputProperty;
+
+
+	protected $errorProperty;
+	
+	protected $haltOnFailure = False;
+	
+	protected $hasErrors = False;
+	
+	protected $badFiles = array();
+	
+	protected $logLevel = Project::MSG_VERBOSE;
+	
+	protected $method = Null;
+	
+
 
     /**
-     * File to save error messages to
+     * Sets up this object internal stuff. i.e. the Fileutils instance and default mode
      *
-     * @param PhingFile $file
+     * @return object   The CopyTask instnace
+     * @access public
      */
-    public function setToFile(PhingFile $tofile)
+    function __construct()
     {
-        $this->tofile = $tofile;
+        $this->fileUtils = new FileUtils();
+        $this->mode = 0777 - umask();
     }
 
+
+
+	/**
+	 * The haltonfailure property
+	 * @param boolean $aValue
+	 */
+	public function setHaltOnFailure($aValue)
+	{
+		$this->haltOnFailure = $aValue;
+	}
+
+
+
+	/**
+	 * Set an property name in which to put any errors.
+	 * @param string $propname 
+	 */
+	public function setErrorproperty($propname)
+	{
+		$this->errorProperty = $propname;
+	}
+
+
+	
+	/**
+	 * Whether to store last-modified times in cache
+	 *
+	 * @param PhingFile $file
+	 */
+	public function setMethod($method)
+	{
+		$this->method = $method;
+	}
+
+
+
     /**
-     * Nested creator, creates a FileSet for this task
+     * The name of property to set to output value from exec() call.
      *
-     * @return FileSet The created fileset object
-     */
-    public function createFileSet() {
-        $num = array_push($this->filesets, new FileSet());
-        return $this->filesets[$num-1];
-    }
-    
-    /**
-     * Set level of log messages generated (default = info)
-     * @param string $level
-     */
-    public function setLevel($level)
-    {
-        switch ($level)
-        {
-            case "error": $this->logLevel = Project::MSG_ERR; break;
-            case "warning": $this->logLevel = Project::MSG_WARN; break;
-            case "info": $this->logLevel = Project::MSG_INFO; break;
-            case "verbose": $this->logLevel = Project::MSG_VERBOSE; break;
-            case "debug": $this->logLevel = Project::MSG_DEBUG; break;
-        }
-    }
-    
-    /**
-     * Sets whether to treat deprecated warnings (introduced in PHP 5.3) as errors
-     * @param boolean $deprecatedAsError
-     */
-    public function setDeprecatedAsError($deprecatedAsError)
-    {
-        $this->deprecatedAsError = $deprecatedAsError;
-    }
-
-    /**
-     * Execute lint check against PhingFile or a FileSet
-     */
-    public function main() {
-        if(!isset($this->file) and count($this->filesets) == 0) {
-            throw new BuildException("Missing either a nested fileset or attribute 'file' set");
-        }
-
-        if($this->file instanceof PhingFile) {
-            $this->lint($this->file->getPath());
-        } else { // process filesets
-            $project = $this->getProject();
-            foreach($this->filesets as $fs) {
-                $ds = $fs->getDirectoryScanner($project);
-                $files = $ds->getIncludedFiles();
-                $dir = $fs->getDir($this->project)->getPath();
-                foreach($files as $file) {
-                    $this->lint($dir.DIRECTORY_SEPARATOR.$file);
-                }
-            }
-        }
-                
-        // write list of 'bad files' to file (if specified)
-        if ($this->tofile) {
-            $writer = new FileWriter($this->tofile);
-            
-            foreach ($this->badFiles as $file => $messages) {
-            	foreach ($messages as $msg) {
-                	$writer->write($file . "=" . $msg . PHP_EOL);
-            	}
-            }
-            
-            $writer->close();
-        }
-
-        $message = '';
-        foreach ($this->badFiles as $file => $messages) {
-            foreach ($messages as $msg) {
-                $message .= $file . "=" . $msg . PHP_EOL;
-            }
-        }
-        
-        // save list of 'bad files' with errors to property errorproperty (if specified)
-        if ($this->errorProperty) {
-            $this->project->setProperty($this->errorProperty, $message);
-        }
-        
-        if (!empty($this->cache)) {
-            $this->cache->commit();
-        }
-        
-        if ($this->haltOnFailure && $this->hasErrors) {
-            throw new BuildException('Syntax error(s) in PHP files: ' . $message);
-        }
-    }
-
-    /**
-     * Performs the actual syntax check
+     * @param string $prop Property name
      *
-     * @param string $file
      * @return void
      */
-    protected function lint($file) {
-        $command = $this->Interpreter == ''
-            ? 'php'
-            : $this->Interpreter;
-        $command .= ' -n -l ';
-        
-        if ($this->deprecatedAsError) {
-            $command .= '-d error_reporting=32767 ';
-        }
-        
-        if(file_exists($file)) {
-            if(is_readable($file)) {
-                if ($this->cache)
-                {
-                    $lastmtime = $this->cache->get($file);
-                    
-                    if ($lastmtime >= filemtime($file))
-                    {
-                        $this->log("Not linting '" . $file . "' due to cache", Project::MSG_DEBUG);
-                        return false;
-                    }
-                }
-                
-                $messages = array();
-                $errorCount = 0;
-
-                exec($command.'"'.$file.'" 2>&1', $messages);
-                
-                for ($i = 0; $i < count($messages) - 1; $i++) {
-                    $message = $messages[$i];
-                    if (trim($message) == '') {
-                        continue;
-                    }
-                    
-                    if ((!preg_match('/^(.*)Deprecated:/', $message) || $this->deprecatedAsError) && !preg_match('/^No syntax errors detected/', $message)) {
-                        $this->log($message, Project::MSG_ERR);
-                        
-                        if (!isset($this->badFiles[$file])) {
-                            $this->badFiles[$file] = array();
-                        }
-                        
-                        array_push($this->badFiles[$file], $message);
-                        
-                        $this->hasErrors = true;
-                        $errorCount++;
-                    }
-                }
-
-                if (!$errorCount) {
-                    $this->log($file.': No syntax errors detected', $this->logLevel);
-                    
-                    if ($this->cache)
-                    {
-                        $this->cache->put($file, filemtime($file));
-                    }
-                }
-            } else {
-                throw new BuildException('Permission denied: '.$file);
-            }
-        } else {
-            throw new BuildException('File not found: '.$file);
-        }
+    public function setOutputProperty($prop)
+    {
+        $this->outputProperty = $prop;
     }
+
+
+
+	/**
+	 * Nested creator, creates a FileSet for this task
+	 *
+	 * @return FileSet The created fileset object
+	 */
+	public function createFileSet()
+	{
+		$num = array_push($this->filesets, new FileSet());
+		return $this->filesets[$num-1];
+	}
+   
+
+
+    /**
+     * Creates a filterchain
+     *
+     * @access public
+     * @return  object  The created filterchain object
+     */
+    function createFilterChain()
+    {
+        $num = array_push($this->filterChains, new FilterChain($this->project));
+        return $this->filterChains[$num-1];
+    }
+
+
+   
+	/**
+	 * Set level of log messages generated (default = info)
+	 * @param string $level
+	 */
+	public function setLevel($level)
+	{
+		switch ($level) {
+			case "error": $this->logLevel = Project::MSG_ERR; break;
+			case "warning": $this->logLevel = Project::MSG_WARN; break;
+			case "info": $this->logLevel = Project::MSG_INFO; break;
+			case "verbose": $this->logLevel = Project::MSG_VERBOSE; break;
+			case "debug": $this->logLevel = Project::MSG_DEBUG; break;
+		}
+	}
+
+
+
+
+
+	/**
+	 * Execute lint check against PhingFile or a FileSet
+	 */
+	public function main()
+	{
+		if(!isset($this->file) and count($this->filesets) == 0) {
+			throw new BuildException("Missing either a nested fileset or attribute 'file' set");
+		}
+
+		$project = $this->getProject();
+		foreach($this->filesets as $fs) {
+			$ds = $fs->getDirectoryScanner($project);
+			$dirs = $ds->getIncludedDirectories();
+			
+			$lists = array();
+			$base = $fs->getDir($this->project)->getPath();
+			foreach ($dirs as $dir) {
+				$lists[$dir] = $this->scan($base . DIRECTORY_SEPARATOR . $dir);
+			}
+			
+			//	Projít co kde chybí
+			$appended = array();
+			foreach ($lists as $dirfrom => $files) {
+				foreach ($files as $file) {
+					foreach ($lists as $dirto => $list) {
+						if (!in_array($file, $list)) {
+							$this->copy($base . DIRECTORY_SEPARATOR . $dirfrom . DIRECTORY_SEPARATOR . $file,
+									$base . DIRECTORY_SEPARATOR . $dirto . DIRECTORY_SEPARATOR . $file
+									);
+							if (!isset($appended[$dirto])) {
+								$appended[$dirto] = array();
+							}
+							$appended[$dirto][] = $dirto . DIRECTORY_SEPARATOR . $file;
+						}
+					}
+				}
+			}
+		}
+
+        $outloglevel = $this->logOutput ? Project::MSG_INFO : Project::MSG_VERBOSE;				
+        $this->log('Merged files: ' . PHP_EOL . implode(PHP_EOL, $appended) . PHP_EOL, $outloglevel);
+
+        if ($this->outputProperty) {
+            $this->project->setProperty(
+                $this->outputProperty, $this->formatOutput($appended)
+            );
+        }
+
+	}
+
+
+
+	/**
+	 * @param array of array of string Pole názvů souborů.
+	 *
+	 * @return string
+	 */
+	private function formatOutput(array $outs)
+	{
+		$return = array();
+		foreach ($outs as $key => $files) {
+			$return[] = 'Merged to: [' . $key . '], files: [' . implode(', ', $files) . '].'; 
+		}
+		return implode(PHP_EOL . PHP_EOL, $return);
+	}
+
+
+
+	/**
+	 * @param string $path Cesta k adrsáři.
+	 *
+	 * @return array of string Seznam souborů.
+	 */
+	private function scan($path)
+	{
+		if (!is_readable($path)) {
+            $this->logError("Path " . $path . " is not readable.");
+			return;
+		}								
+
+		$newfiles = self::listDir($path);
+
+		return $newfiles;
+	}
+
+
+
+	/**
+	 * Lists contens of a given directory and returns array with entries
+	 *
+	 * @param   src String. Source path and name file to copy.
+	 *
+	 * @access  public
+	 * @return  array  directory entries
+	 * @author  Albert Lash, alash@plateauinnovation.com
+	 */
+	private function listDir($_dir)
+	{
+		$d = dir($_dir);
+		$list = array();
+		while(($entry = $d->read()) !== false) {
+			if ($entry != "." && $entry != "..") {
+				$list[] = $entry;
+			}
+		}
+		$d->close();
+		return $list;
+	}
+
+
+
+	/**
+	 * Copy src to desc
+	 *
+	 * @param   string src Source from copy
+	 * @param   string desc Destination to copy
+	 */
+	private function copy($from, $to)
+	{
+		$fromFile = new PhingFile($from);
+		$toFile = new PhingFile($to);
+		try {
+			$this->fileUtils->copyFile($fromFile, $toFile, False, False, $this->filterChains, $this->getProject(), $this->mode);
+        }
+        catch (IOException $ioe) {
+            $this->logError("Failed to copy " . $from . " to " . $to . ": " . $ioe->getMessage());
+        }
+	}
+
+
+
+
+
 }
 
 

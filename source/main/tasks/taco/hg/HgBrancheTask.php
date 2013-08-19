@@ -17,12 +17,11 @@ require_once "phing/Task.php";
 
 
 /**
- * HgLogFilesTask
+ * HgBrancheTask
  *
- * Loads a (text) filenames between two revision of hg.
- * Supports filterchains.
+ * Loads a (text) names of branches between two revision of hg.
  */
-class HgLogFilesTask extends Task
+class HgBrancheTask extends Task
 {
 
 	/**
@@ -56,20 +55,16 @@ class HgLogFilesTask extends Task
 	private $property;
 
 
-	
 	/**
-	 * filter to be set
-	 * @var string $filter
+	 * Formát výstupu. name, id, changset
 	 */
-	private $filter;
+	private $format = '%name%';
 
 
-	
 	/**
-	 * Array of FilterChain objects
-	 * @var FilterChain[]
+	 * Oddělovač jednotlivých branchí.
 	 */
-	private $filterChains = array();
+	private $separator = ',';
 
 
 
@@ -88,27 +83,13 @@ class HgLogFilesTask extends Task
 
 
 	/**
-	 * Set filter of files
-	 *
-	 * @param string $filter
-	 * @return this
-	 */
-	public function setFilter($filter)
-	{
-		$this->filter = $filter;
-		return $this;
-	}
-
-
-
-	/**
 	 * Set file to read
 	 * @param PhingFile $file
 	 * @return this
 	 */
 	public function setRevFrom($value)
 	{
-		$this->revFrom = $value;
+		$this->revFrom = (int)$value;
 		return $this;
 	}
 
@@ -128,36 +109,67 @@ class HgLogFilesTask extends Task
 
 
 	/**
-	 * Creates a filterchain
+	 *	Formát výstupu. Máme nějaké kousky, a z nich můžeme poskládát výstup.
+	 *	Seznam placeholdrů:
+	 *		%id%	ciselen id changesetu.
+	 *		%name%	Jméno branche.
+	 *		%changeset%	hexa hash changesetu.
 	 *
-	 * @return  object  The created filterchain object
+	 *	@param string 
+	 *	@return this
 	 */
-	function createFilterChain()
+	public function setFormat($value)
 	{
-		$num = array_push($this->filterChains, new FilterChain($this->project));
-		return $this->filterChains[$num-1];
+		$this->format = $value;
+		return $this;
 	}
 
 
 
 	/**
-	 * Zpracovat výstup.
+	 * Oddělovače jednotlivých branchí.
 	 *
-	 * @return string of regular expresion.
+	 * @param string 
+	 * @return this
+	 */
+	public function setSeparator($value)
+	{
+		$this->separator = $value;
+		return $this;
+	}
+
+
+
+	/**
+	 * Zpracovat výstup. Rozprazsuje řádek, vyfiltruje jej zda je větší jak revize a naformátuje jej do výstupu.
+	 *
+	 * @param array of string Položky branch + id:hash
+	 *
+	 * @return string
 	 */
 	protected function filterOutput($output)
 	{
-		unset($output[count($output) - 1]);
 		$ret = array();
+		$this->log('Filter for: ' . $this->revFrom, Project::MSG_VERBOSE);
 		foreach ($output as $row) {
-#			$row = preg_replace('~|.*$~', '', trim($row));
-			if (preg_match('~([^| ]+)|~', trim($row), $matches) && !empty($matches[0])) {
-				if (preg_match('~' . $this->filter . '~', $matches[0], $out)) {
-					$ret[] = $out[0];
+			if (preg_match('~([^\s]+)\s+(\d+)\:([\d\w]+)~', $row, $matches)) {
+				if ($matches[2] >= $this->revFrom) {
+					//	Mapování
+					$mask = array();
+					$mask['%id%'] = $matches[2];
+					$mask['%name%'] = $matches[1];
+					$mask['%changeset%'] = $matches[3];
+
+					//	přiřazení
+					$this->log('add:  ' . $row, Project::MSG_VERBOSE);
+					$ret[] = strtr($this->format, $mask);
+				}
+				else {
+					$this->log('skip: ' . $row, Project::MSG_VERBOSE);
 				}
 			}
 		}
-		return implode(',', $ret);
+		return implode($this->separator, $ret);
 	}
 
 
@@ -183,16 +195,8 @@ class HgLogFilesTask extends Task
 		$this->currdir = getcwd();
 		@chdir($this->repository->getPath());
 		$this->command = self::BIN;
-		$this->command .= ' diff --stat';
-		
-		if (empty($this->revFrom)) {
-			throw new BuildException("revFrom: '" . (int) $this->revFrom . "' is not a valid value.");
-		
-		}
-		$this->command .= ' -r ' . $this->revFrom;
-		if ($this->revTo) {
-			$this->command .= ' -r ' . $this->revTo;
-		}
+
+		$this->command .= ' branches';
 	}
 
 
@@ -238,7 +242,7 @@ class HgLogFilesTask extends Task
 		}
 
 		if ($return != 0) {
-			throw new BuildException("Task exited with output: " . implode(PHP_EOL, $output));
+			throw new BuildException("Task exited with output $output");
 		}
 
 		$output = $this->filterOutput($output);
