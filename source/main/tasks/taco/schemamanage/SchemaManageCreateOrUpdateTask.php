@@ -13,7 +13,7 @@
  */
 
 require_once "phing/Task.php";
-require_once "phing/tasks/taco/schemamanage/SchemaManageBaseTask.php";
+require_once "tasks/taco/schemamanage/SchemaManageBaseTask.php";
 
 
 /**
