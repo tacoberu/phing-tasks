@@ -13,12 +13,20 @@
  */
 
 require_once "phing/Task.php";
-require_once "phing/tasks/taco/schemamanage/SchemaManageBaseTask.php";
+require_once "tasks/taco/schemamanage/SchemaManageBaseTask.php";
 
 
 
 /**
  * Aktualizace databáze podle repozitáře.
+ *
+ * [code]
+ *		<schemamanage.status
+ *				database="dbname"
+ *				dir="${dir.source.persistence}"
+ *				logoutput="true"
+ *				/>
+ * [/code]
  *
  * @package   phing.tasks.taco
  */
@@ -35,9 +43,9 @@ class SchemaManageUpdateTask extends SchemaManageBaseTask
 
 
 	/**
-	 *
+	 * Zpracuje výstup pro proměnnou.
 	 */
-	protected function formatOutputProperty($output)
+	protected function formatOutputProperty($output, $outloglevel)
 	{
 		$out = array();
 		foreach ($output as $row) {
@@ -45,12 +53,27 @@ class SchemaManageUpdateTask extends SchemaManageBaseTask
 				$out = array();
 				continue;
 			}
+			
 			if (strpos($row, '[Success]') !== False) {
 				continue;
 			}
-			$out[] = $row;
+
+			if (strpos($row, 'Aktualizuji:') !== False) {
+				$out[] = $row;
+				continue;
+			}
+			
+			$msg[] = $row;
 		}
-		return implode(', ', $out);
+
+		if (count($out)) {
+			return "[{$this->database}]: Process:\n" . implode(PHP_EOL, $out);
+		}
+		else {
+			if ($loglevel >= Project::MSG_VERBOSE) {
+				return "[{$this->database}]: " . implode('; ', $msg);
+			}
+		}
 	}
 
 }

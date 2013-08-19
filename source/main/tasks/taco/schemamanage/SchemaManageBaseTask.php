@@ -25,6 +25,13 @@ abstract class SchemaManageBaseTask extends Task
 {
 
     /**
+     * Destination of schema-manage runtime.
+     * @var string
+     */
+    protected $bin = '/usr/bin/schema-manage';
+
+
+    /**
      * Command to execute.
      * @var string
      */
@@ -71,26 +78,37 @@ abstract class SchemaManageBaseTask extends Task
 	/**
 	 * The database 
 	 */
-	private $database = null;
-
+	protected $database = null;
 
 
 	/**
 	 * The host 
 	 */
-	private $host = null;
+	protected $host = null;
 
 
 	/**
 	 * The userlogin 
 	 */
-	private $userlogin = Null;
+	protected $userlogin = Null;
 
 
 	/**
 	 * The userpassword 
 	 */
-	private $userpassword = Null;
+	protected $userpassword = Null;
+
+
+	/**
+	 * The adminlogin 
+	 */
+	protected $adminlogin = Null;
+
+
+	/**
+	 * The adminpassword 
+	 */
+	protected $adminpassword = Null;
 
 
     /**
@@ -111,18 +129,29 @@ abstract class SchemaManageBaseTask extends Task
 
 
 
+	/**
+	 * The setter for the attribute "bin"
+	 */
+	public function setBin($str)
+	{
+		$this->bin = $str;
+	}
+
+
+
     /**
      * Specify the working directory for executing this command.
      * @param PhingFile $dir
      */
-    function setDir(PhingFile $dir) {
+    function setDir(PhingFile $dir)
+    {
         $this->dir = $dir;
     }
 
 
 
 	/**
-	 * The setter for the attribute "branch"
+	 * The setter for the attribute "database"
 	 */
 	public function setDatabase($str)
 	{
@@ -142,7 +171,7 @@ abstract class SchemaManageBaseTask extends Task
 
 
 	/**
-	 * The setter for the attribute "host"
+	 * The setter for the attribute "user-login"
 	 */
 	public function setUserlogin($str)
 	{
@@ -152,11 +181,31 @@ abstract class SchemaManageBaseTask extends Task
 
 
 	/**
-	 * The setter for the attribute "host"
+	 * The setter for the attribute "host-password"
 	 */
 	public function setUserpassword($str)
 	{
 		$this->userpassword = $str;
+	}
+
+
+
+	/**
+	 * The setter for the attribute "admin-login"
+	 */
+	public function setAdminlogin($str)
+	{
+		$this->adminlogin = $str;
+	}
+
+
+
+	/**
+	 * The setter for the attribute "admin-password"
+	 */
+	public function setAdminpassword($str)
+	{
+		$this->adminpassword = $str;
 	}
 
 
@@ -172,6 +221,8 @@ abstract class SchemaManageBaseTask extends Task
     {
         $this->returnProperty = $prop;
     }
+
+
 
     /**
      * The name of property to set to output value from exec() call.
@@ -245,31 +296,17 @@ abstract class SchemaManageBaseTask extends Task
 
 
 	/**
-	 * Parametry příkazu.
+	 * The main entry point method.
 	 */
-	public function getParams()
+	public function main()
 	{
-		$ret = array();
-		if ($this->database) {
-			$ret['database'] = $this->database;
-		}
-		if ($this->host) {
-			$ret['host'] = $this->host;
-		}
-		if ($this->userlogin) {
-			$ret['user-login'] = $this->userlogin;
-		}
-		if ($this->userpassword) {
-			$ret['user-password'] = $this->userpassword;
-		}
-		if ($this->userlogin) {
-			$ret['admin-login'] = $this->userlogin;
-		}
-		if ($this->userpassword) {
-			$ret['admin-password'] = $this->userpassword;
-		}
-		
-		return $ret;
+        if (null === $this->dir) {
+            throw new BuildException('"dir" is required parameter');
+        }
+
+        $this->prepare();
+        list($return, $output) = $this->executeCommand();
+        $this->cleanup($return, $output);
 	}
 
 
@@ -282,12 +319,18 @@ abstract class SchemaManageBaseTask extends Task
      */
     protected function prepare()
     {
-        // expand any symbolic links first
-        if (!$this->dir->getCanonicalFile()->isDirectory()) {
-            throw new BuildException(
-                "'" . (string) $this->dir . "' is not a valid directory"
-            );
+        if (empty($this->action)) {
+            throw new \LogicException("Not set action.");
         }
+
+        if (empty($this->bin)) {
+            throw new BuildException("Not set bin with schema-manage runtime.");
+        }
+
+        if (!$this->dir->getCanonicalFile()->isDirectory()) {
+            throw new BuildException("'" . (string) $this->dir . "' is not a valid directory.");
+        }
+
         foreach ($this->getParams() as $name => $value) {
         	$params[] = '--' . $name . ' ' . $value;
         }
@@ -300,7 +343,7 @@ abstract class SchemaManageBaseTask extends Task
         else {
         	$params = Null;
         }
-		$this->command = '/usr/bin/schema-manage ' . $this->action . $params;
+		$this->command = $this->bin . ' ' . $this->action . $params;
     }
 
 
@@ -326,7 +369,10 @@ abstract class SchemaManageBaseTask extends Task
         if (strpos(implode('', $output), '[Error]') !== False) {
         	$return = 1;
         }
-        $this->log('Executing command: [' . $this->command . '], with returning code: ' . $return, Project::MSG_VERBOSE);
+        $this->log('Executing command: [' . $this->command . '], in workdir: [' 
+        		. $this->dir->getPath() . '], with returning code: ' 
+        		. $return,
+        		Project::MSG_VERBOSE);
 
         return array($return, $output);
     }
@@ -346,45 +392,63 @@ abstract class SchemaManageBaseTask extends Task
      */
     protected function cleanup($return, $output)
     {
-        if ($this->dir !== null) {
-            @chdir($this->currdir);
-        }
+		if ($this->dir !== null) {
+			@chdir($this->currdir);
+		}
 
-        $outloglevel = $this->logOutput ? Project::MSG_INFO : Project::MSG_VERBOSE;
+		$outloglevel = $this->logOutput ? Project::MSG_VERBOSE : Project::MSG_INFO;
+		$out = $this->formatOutputProperty($output, $outloglevel);
+		if ($out) {
+			$this->log($out, $this->logLevel);
+		}
 
-        $this->log('Execute schema-manage in: ' . $this->dir . ' (' . $this->database . ')', $outloglevel);
+		if ($this->returnProperty) {
+			$this->project->setProperty($this->returnProperty, $return);
+		}
 
-        if ($this->returnProperty) {
-            $this->project->setProperty($this->returnProperty, $return);
-        }
+		if ($out && $this->outputProperty) {
+			$this->project->setProperty($this->outputProperty, $out);
+		}
 
-        if ($this->outputProperty) {
-            $this->project->setProperty($this->outputProperty, $this->formatOutputProperty($output));
-        }
-
-        if ($return != 0) {
-            throw new BuildException("Task exited with code $return and message: " . implode("\n", $output));
-        }
+		if ($return != 0) {
+			throw new BuildException("Task exited with code $return and message: " . implode("\n", $output));
+		}
     }
 
 
 
 	/**
-	 * The main entry point method.
+	 * Parametry příkazu.
 	 */
-	public function main()
+	private function getParams()
 	{
-        if (null === $this->dir) {
-            throw new BuildException('"dir" is required parameter');
-        }
+		$ret = array();
+		if ($this->database) {
+			$ret['database'] = $this->database;
+		}
 
-        $this->prepare();
-        list($return, $output) = $this->executeCommand();
-        $this->cleanup($return, $output);
+		if ($this->host) {
+			$ret['host'] = $this->host;
+		}
+
+		if ($this->userlogin) {
+			$ret['user-login'] = $this->userlogin;
+		}
+
+		if ($this->userpassword) {
+			$ret['user-password'] = $this->userpassword;
+		}
+
+		if ($this->userlogin) {
+			$ret['admin-login'] = $this->adminlogin;
+		}
+
+		if ($this->userpassword) {
+			$ret['admin-password'] = $this->adminpassword;
+		}
+		
+		return $ret;
 	}
-
-
-
 
 
 }

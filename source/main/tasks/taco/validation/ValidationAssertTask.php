@@ -17,19 +17,45 @@ require_once 'phing/Task.php';
 /**
  *  Validation required files, directories and properties.
  *
+ * [code]
+ *		<validation.assert property="variable.client.database.c.database">Jméno klientské databáze.</validation.assert>
+ *		<validation.assert dir="${dir.source.repository}">Umístění zdrojáků.</validation.assert>
+ * [/code]
+ *
  *  @author   Martin Takáč <martin@takac.name>
  *  @package  phing.tasks.taco
  */
 class ValidationAssertTask extends Task
 {
 
+	/**
+	 * Ověření existence adresáře.
+	 */
 	const TEST_TYPE_DIR = 'dir';
+
+
+	/**
+	 * Ověření existence property.
+	 */
 	const TEST_TYPE_PROPERTY = 'property';
 
+
+	/**
+	 * ??
+	 */
 	private $conditionData;
+
+
+	/**
+	 * Co ověřujeme, property, nebo adresář?
+	 * $var enum self::TEST_TYPE_*
+	 */
 	private $testType;
 	
 	
+	/**
+	 * Text chybové hlášky.
+	 */
 	private $message = "No message";
 	
 	
@@ -37,7 +63,7 @@ class ValidationAssertTask extends Task
 	 * Assert directory exist.
 	 * @param $dir Directory name
 	 */
-	public function setDir($dir)
+	public function setDir(PhingFile $dir)
 	{
 		$this->conditionData = $dir;
 		$this->testType = self::TEST_TYPE_DIR;
@@ -85,7 +111,7 @@ class ValidationAssertTask extends Task
 	 */
 	private function testDirCondition()
 	{
-		if ($this->project->getProperty($this->conditionData)) {
+        if ($this->conditionData->getCanonicalFile()->isDirectory()) {
 			return True;
 		}
 		$this->message = strtr('Není nastavena cesta k adresáři [%dir%], jehož význam je: [%message%].', array(
