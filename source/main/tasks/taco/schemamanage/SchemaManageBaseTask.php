@@ -64,7 +64,7 @@ abstract class SchemaManageBaseTask extends Task
      * @var boolean
      */
     protected $logOutput = false;
-    
+
 
 
     /**
@@ -76,37 +76,37 @@ abstract class SchemaManageBaseTask extends Task
 
 
 	/**
-	 * The database 
+	 * The database
 	 */
 	protected $database = null;
 
 
 	/**
-	 * The host 
+	 * The host
 	 */
 	protected $host = null;
 
 
 	/**
-	 * The userlogin 
+	 * The userlogin
 	 */
 	protected $userlogin = Null;
 
 
 	/**
-	 * The userpassword 
+	 * The userpassword
 	 */
 	protected $userpassword = Null;
 
 
 	/**
-	 * The adminlogin 
+	 * The adminlogin
 	 */
 	protected $adminlogin = Null;
 
 
 	/**
-	 * The adminpassword 
+	 * The adminpassword
 	 */
 	protected $adminpassword = Null;
 
@@ -250,7 +250,7 @@ abstract class SchemaManageBaseTask extends Task
         $this->logOutput = (bool) $logOutput;
     }
 
-    
+
 
     /**
      * Set level of log messages generated (default = verbose)
@@ -288,9 +288,11 @@ abstract class SchemaManageBaseTask extends Task
 
 	/**
 	 * The init method: Do init steps.
+	 * Možnost globálně změnit chování pomocí build.properties
 	 */
 	public function init()
 	{
+		$this->setBin($this->getProject()->getProperty($this->getTaskName() . '.bin'));
 	}
 
 
@@ -336,7 +338,7 @@ abstract class SchemaManageBaseTask extends Task
         }
         $this->currdir = getcwd();
         @chdir($this->dir->getPath());
-        
+
         if (count($params)) {
         	$params = ' ' . implode(' ', $params);
         }
@@ -357,20 +359,21 @@ abstract class SchemaManageBaseTask extends Task
     {
         $output = array();
         $return = null;
-        
+
         if ($this->passthru) {
             passthru($this->command, $return);
         }
         else {
             exec($this->command, $output, $return);
         }
-        
+
         //	schema-manage vrací špatné návratové hodnoty.
         if (strpos(implode('', $output), '[Error]') !== False) {
         	$return = 1;
         }
-        $this->log('Executing command: [' . $this->command . '], in workdir: [' 
-        		. $this->dir->getPath() . '], with returning code: ' 
+
+        $this->log('Executing command: [' . $this->command . '], in workdir: ['
+        		. $this->dir->getPath() . '], with returning code: '
         		. $return,
         		Project::MSG_VERBOSE);
 
@@ -446,7 +449,7 @@ abstract class SchemaManageBaseTask extends Task
 		if ($this->userpassword) {
 			$ret['admin-password'] = $this->adminpassword;
 		}
-		
+
 		return $ret;
 	}
 
