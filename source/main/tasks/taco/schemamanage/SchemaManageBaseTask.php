@@ -292,7 +292,9 @@ abstract class SchemaManageBaseTask extends Task
 	 */
 	public function init()
 	{
-		$this->setBin($this->getProject()->getProperty($this->getTaskName() . '.bin'));
+		if ($bin = $this->getProject()->getProperty($this->getTaskName() . '.bin')) {
+			$this->setBin($bin);
+		}
 	}
 
 
