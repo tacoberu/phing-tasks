@@ -39,7 +39,7 @@ abstract class SchemaManageBaseTask extends Task
 
 
     /**
-     * Action to execute.
+     * Action to execute: status, update, install
      * @var string
      */
     protected $action;
@@ -155,7 +155,7 @@ abstract class SchemaManageBaseTask extends Task
 	 */
 	public function setDatabase($str)
 	{
-		$this->database = $str;
+		$this->database = trim($str);
 	}
 
 
@@ -165,7 +165,7 @@ abstract class SchemaManageBaseTask extends Task
 	 */
 	public function setHost($str)
 	{
-		$this->host = $str;
+		$this->host = trim($str);
 	}
 
 
@@ -175,7 +175,7 @@ abstract class SchemaManageBaseTask extends Task
 	 */
 	public function setUserlogin($str)
 	{
-		$this->userlogin = $str;
+		$this->userlogin = trim($str);
 	}
 
 
@@ -185,7 +185,7 @@ abstract class SchemaManageBaseTask extends Task
 	 */
 	public function setUserpassword($str)
 	{
-		$this->userpassword = $str;
+		$this->userpassword = trim($str);
 	}
 
 
@@ -195,7 +195,7 @@ abstract class SchemaManageBaseTask extends Task
 	 */
 	public function setAdminlogin($str)
 	{
-		$this->adminlogin = $str;
+		$this->adminlogin = trim($str);
 	}
 
 
@@ -205,7 +205,7 @@ abstract class SchemaManageBaseTask extends Task
 	 */
 	public function setAdminpassword($str)
 	{
-		$this->adminpassword = $str;
+		$this->adminpassword = trim($str);
 	}
 
 
@@ -335,7 +335,7 @@ abstract class SchemaManageBaseTask extends Task
             throw new BuildException("'" . (string) $this->dir . "' is not a valid directory.");
         }
 
-        foreach ($this->getParams() as $name => $value) {
+        foreach ($this->buildParams() as $name => $value) {
         	$params[] = '--' . $name . ' ' . $value;
         }
         $this->currdir = getcwd();
@@ -423,9 +423,9 @@ abstract class SchemaManageBaseTask extends Task
 
 
 	/**
-	 * Parametry příkazu.
+	 * Seskládá parametry příkazu.
 	 */
-	private function getParams()
+	private function buildParams()
 	{
 		$ret = array();
 		if ($this->database) {
@@ -444,11 +444,11 @@ abstract class SchemaManageBaseTask extends Task
 			$ret['user-password'] = $this->userpassword;
 		}
 
-		if ($this->userlogin) {
+		if ($this->adminlogin) {
 			$ret['admin-login'] = $this->adminlogin;
 		}
 
-		if ($this->userpassword) {
+		if ($this->adminpassword) {
 			$ret['admin-password'] = $this->adminpassword;
 		}
 

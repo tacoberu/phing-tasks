@@ -50,6 +50,14 @@ class TacoComposerTask extends Task
 
 
     /**
+     * Whether to use PHP's passthru() function instead of exec()
+     * @var boolean
+     */
+    protected $passthru = false;
+
+
+
+    /**
      * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
      * @var boolean
      */
