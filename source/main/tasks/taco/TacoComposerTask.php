@@ -73,6 +73,32 @@ class TacoComposerTask extends Task
 
 
 
+	/**
+	 * The init method: Do init steps.
+	 * Možnost globálně změnit chování pomocí build.properties
+	 */
+	public function init()
+	{
+		if ($bin = $this->getProject()->getProperty($this->getTaskName() . '.bin')) {
+			$this->setBin($bin);
+		}
+		elseif ($bin = $this->getProject()->getProperty('composer.bin')) {
+			$this->setBin($bin);
+		}
+	}
+
+
+
+	/**
+	 * The setter for the attribute "bin"
+	 */
+	public function setBin($str)
+	{
+		$this->composer = $str;
+	}
+
+
+
     /**
      * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
      *

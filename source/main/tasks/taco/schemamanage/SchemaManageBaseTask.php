@@ -295,6 +295,9 @@ abstract class SchemaManageBaseTask extends Task
 		if ($bin = $this->getProject()->getProperty($this->getTaskName() . '.bin')) {
 			$this->setBin($bin);
 		}
+		elseif ($bin = $this->getProject()->getProperty('schema-manage.bin')) {
+			$this->setBin($bin);
+		}
 	}
 
 
