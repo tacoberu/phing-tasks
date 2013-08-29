@@ -341,7 +341,7 @@ abstract class HgBaseTask extends Task
 		$options = $this->options;
 
 		foreach ($this->args as $i => $arg) {
-			if (empty ($arg->getName())) {
+			if (! $arg->getName()) {
 				throw new BuildException("Invalid $i-line argument. Name is not set.");
 			}
 			$options[$arg->getName()] = $arg->getValue();
