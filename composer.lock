@@ -11,12 +11,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tacoberu/php-process.git",
-                "reference": "043851ed69ada5dcd634e51eb298ab120676ba47"
+                "reference": "e44589418604856e29490f7fa200b212ebc8c323"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tacoberu/php-process/zipball/043851ed69ada5dcd634e51eb298ab120676ba47",
-                "reference": "043851ed69ada5dcd634e51eb298ab120676ba47",
+                "url": "https://api.github.com/repos/tacoberu/php-process/zipball/e44589418604856e29490f7fa200b212ebc8c323",
+                "reference": "e44589418604856e29490f7fa200b212ebc8c323",
                 "shasum": ""
             },
             "require": {
@@ -28,6 +28,9 @@
                     "Taco": "lib/"
                 }
             },
+            "license": [
+                "MIT"
+            ],
             "authors": [
                 {
                     "name": "Martin Takáč",
@@ -35,12 +38,17 @@
                     "homepage": "http://martin.takac.name"
                 }
             ],
-            "description": "Wraper nad voláním procesů systému",
+            "description": "Wraper for calling process.",
+            "keywords": [
+                "bash",
+                "process",
+                "sh"
+            ],
             "support": {
                 "source": "https://github.com/tacoberu/php-process/tree/master",
                 "issues": "https://github.com/tacoberu/php-process/issues"
             },
-            "time": "2013-08-29 14:40:23"
+            "time": "2013-08-29 20:00:08"
         }
     ],
     "packages-dev": [
