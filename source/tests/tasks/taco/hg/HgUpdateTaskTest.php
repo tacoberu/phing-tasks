@@ -15,9 +15,7 @@
  * @author     Martin Takáč <taco@taco-beru.name>
  */
 
-require_once "phing/Task.php";
-
-
+require_once 'phing/BuildFileTest.php';
 
 /**
  * HgUpdateTaskTest
@@ -25,12 +23,57 @@ require_once "phing/Task.php";
  * Loads a (text) filenames between two revision of hg.
  * Supports filterchains.
  *
- * @call phpunit --bootstrap ../../../../bootstrap.php Tests_Unit_Phing_Tasks_Taco_Hg_HgUpdateTaskTest HgUpdateTaskTest.php 
+ * @call phpunit --bootstrap ../../../bootstrap.php Tests_Unit_Phing_Tasks_Taco_Hg_HgUpdateTaskTest HgUpdateTaskTest.php 
  */
-class Tests_Unit_Phing_Tasks_Taco_Hg_HgUpdateTaskTest extends PHPUnit_Framework_TestCase
+class Tests_Unit_Phing_Tasks_Taco_Hg_HgUpdateTaskTest extends BuildFileTest
 {
 
+	private $task;
+	
+
+    public function setUp()
+    {
+		$this->task = new HgUpdateTask();
+    }
 
 
+
+	/**
+	 * Povinný přiřazení repoisitroy
+	 */
+	public function testFailRepositorySet()
+	{
+		$this->setExpectedException('BuildException', '"repository" is required parameter');
+		$this->task
+			->main();
+	}
+
+
+
+	/**
+	 * Povinný přiřazení repoisitroy
+	 */
+	public function testRepositorySet()
+	{
+		$mock = $this->getMock('Taco\Utils\Process\Exec', array('update'), array('ab'));
+        $mock->expects($this->at(0))
+             ->method('setWorkDirectory')
+             ->will($this->returnSelf());
+
+		$this->task
+			->setExec($mock)
+			->setRepository(new PhingFile($this->getTempDir()))
+			->main();
+	}
+
+
+
+	/**
+	 * @return string
+	 */
+	public function getTempDir()
+	{
+		return realpath(__dir__ . '/../../../../../temp');
+	}
 }
 

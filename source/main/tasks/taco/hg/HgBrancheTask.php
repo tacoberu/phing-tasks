@@ -13,6 +13,7 @@
  */
 
 require_once "phing/Task.php";
+require_once __dir__ . '/HgBaseTask.php';
 
 
 
@@ -23,19 +24,15 @@ require_once "phing/Task.php";
  *
  * @package phing.tasks.taco
  */
-class HgBrancheTask extends Task
+class HgBrancheTask extends HgBaseTask
 {
 
-	/**
-	 *	Kde najdem program.
-	 */
-	const BIN = '/usr/bin/hg';
-
 
 	/**
-	 * repository.
+	 * Action to execute: status, update, install
+	 * @var string
 	 */
-	private $repository;
+	protected $action = 'branches';
 
 
 	/**
@@ -51,13 +48,6 @@ class HgBrancheTask extends Task
 
 
 	/**
-	 * Property to be set
-	 * @var string $property
-	 */
-	private $property;
-
-
-	/**
 	 * Formát výstupu. name, id, changset
 	 */
 	private $format = '%name%';
@@ -67,20 +57,6 @@ class HgBrancheTask extends Task
 	 * Oddělovač jednotlivých branchí.
 	 */
 	private $separator = ',';
-
-
-
-	/**
-	 * Set repository directory
-	 *
-	 * @param string $repository Repo directory
-	 * @return this
-	 */
-	public function setRepository(PhingFile $repository)
-	{
-		$this->repository = $repository;
-		return $this;
-	}
 
 
 
@@ -149,7 +125,7 @@ class HgBrancheTask extends Task
 	 *
 	 * @return string
 	 */
-	protected function filterOutput($output)
+	protected function formatOutput(array $output)
 	{
 		$ret = array();
 		$this->log('Filter for: ' . $this->revFrom, Project::MSG_VERBOSE);
@@ -172,106 +148,6 @@ class HgBrancheTask extends Task
 			}
 		}
 		return implode($this->separator, $ret);
-	}
-
-
-
-	/**
-	 * Prepares the command building and execution, i.e.
-	 * changes to the specified directory.
-	 *
-	 * @return void
-	 */
-	protected function prepare()
-	{
-		if ($this->repository === null) {
-			return;
-		}
-
-		// expand any symbolic links first
-		if (!$this->repository->getCanonicalFile()->isDirectory()) {
-			throw new BuildException(
-				"'" . (string) $this->repository . "' is not a valid directory"
-			);
-		}
-		$this->currdir = getcwd();
-		@chdir($this->repository->getPath());
-		$this->command = self::BIN;
-
-		$this->command .= ' branches';
-	}
-
-
-
-	/**
-	 * Executes the command and returns return code and output.
-	 *
-	 * @return array array(return code, array with output)
-	 */
-	protected function executeCommand()
-	{
-		$output = array();
-		$return = null;
-		
-#		if ($this->passthru) {
-#			passthru($this->command, $return);
-#		}
-#		else {
-			exec($this->command, $output, $return);
-#		}
-		$this->log('Executing command: ' . $this->command, Project::MSG_VERBOSE);
-
-		return array($return, $output);
-	}
-
-
-
-	/**
-	 * Runs all tasks after command execution:
-	 * - change working directory back
-	 * - log output
-	 * - verify return value
-	 *
-	 * @param integer $return Return code
-	 * @param array   $output Array with command output
-	 *
-	 * @return void
-	 */
-	protected function cleanup($return, $output)
-	{
-		if ($this->repository !== null) {
-			@chdir($this->currdir);
-		}
-
-		if ($return != 0) {
-			throw new BuildException("Task exited with output $output");
-		}
-
-		$output = $this->filterOutput($output);
-
-		if ($this->property) {
-			$this->project->setProperty($this->property, $output);
-		}
-
-	}
-
-
-
-	/**
-	 * The main entry point method.
-	 */
-	public function main()
-	{
-		if (null === $this->repository) {
-			throw new BuildException('"repository" is required parameter');
-		}
-		if (null === $this->revFrom) {
-			throw new BuildException('"revFrom" is required parameter');
-		}
-
-		$this->prepare();
-		list($return, $output) = $this->executeCommand();
-		$this->cleanup($return, $output);
 	}
 
 
