@@ -205,17 +205,17 @@ class HgTagTask extends HgBaseTask
 		foreach ($output as $row) {
 			if (preg_match('~([^\s]+)\s+(\d+)\:([\d\w]+)~', $row, $matches)) {
 				if ($this->revFrom && $matches[2] < $this->revFrom) {
-					$this->log("skip by rev-from: $row ({$matches[2]}) < {$this->revFrom}", Project::MSG_VERBOSE);
+					$this->log("skip by rev-from: $row ({$matches[2]}) < {$this->revFrom}", Project::MSG_DEBUG);
 					continue;
 				}
 
 				if ($this->filter && ! preg_match('~^' . $this->filter . '$~i', $matches[1])) {
-					$this->log("skip by filter: `{$matches[1]}` != `{$this->filter}`.", Project::MSG_VERBOSE);
+					$this->log("skip by filter: `{$matches[1]}` != `{$this->filter}`.", Project::MSG_DEBUG);
 					continue;
 				}
 
 				if (in_array($matches[1], $this->exclude)) {
-					$this->log("discard: $row", Project::MSG_VERBOSE);
+					$this->log("discard: $row", Project::MSG_DEBUG);
 					continue;
 				}
 
