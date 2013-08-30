@@ -5,22 +5,58 @@ require_once "phing/types/DataType.php";
 
 /**
  * This Type represents a DB Connection.
+ *  <dsn
+ *       id="maindsn"
+ *       url="mysql://localhost/mydatabase"
+ *       username="root"
+ *       password=""
+ *       persistent="false" />
  */
-class DSN extends DataType
+class TacoDSNType extends DataType
 {
 
+	/**
+	 * @var string
+	 * Sets the URL part: mysql://localhost/mydatabase
+	 */
 	private $url;
+
+	/**
+	 * @var string
+	 */
 	private $driver;
+
+	/**
+	 * @var string
+	 */
 	private $host;
+
+	/**
+	 * @var string
+	 */
 	private $database;
+
+	/**
+	 * @var string
+	 */
 	private $username;
+
+	/**
+	 * @var string
+	 */
 	private $password;
+
+	/**
+	 * @var boolean
+	 */
 	private $persistent = false;
 
 
 
 	/**
 	 * Sets the URL part: mysql://localhost/mydatabase
+	 *
+	 * @param string
 	 */
 	public function setUrl($url)
 	{
@@ -38,6 +74,8 @@ class DSN extends DataType
 
 	/**
 	 * Sets username to use in connection.
+	 *
+	 * @param string
 	 */
 	public function setUsername($username)
 	{
@@ -48,6 +86,8 @@ class DSN extends DataType
 
 	/**
 	 * Sets password to use in connection.
+	 *
+	 * @param string
 	 */
 	public function setPassword($password)
 	{
@@ -67,6 +107,11 @@ class DSN extends DataType
 
 
 
+	/**
+	 * gets the URL part: mysql://localhost/mydatabase
+	 *
+	 * @return string
+	 */
 	public function getUrl(Project $p)
 	{
 		if ($this->isReference()) {
@@ -77,6 +122,9 @@ class DSN extends DataType
 
 
 
+	/**
+	 * @return string
+	 */
 	public function getDriver(Project $p)
 	{
 		if ($this->isReference()) {
@@ -87,6 +135,9 @@ class DSN extends DataType
 
 
 
+	/**
+	 * @return string
+	 */
 	public function getHost(Project $p)
 	{
 		if ($this->isReference()) {
@@ -138,32 +189,11 @@ class DSN extends DataType
 
 
 	/**
-	 * Gets a combined hash/array for DSN as used by PEAR.
-	 * @return array
-	 */
-	public function getPEARDSN(Project $p)
-	{
-		if ($this->isReference()) {
-			return $this->getRef($p)->getPEARDSN($p);
-		}
-
-		include_once 'DB.php';
-		$dsninfo = DB::parseDSN($this->url);
-		$dsninfo['username'] = $this->username;
-		$dsninfo['password'] = $this->password;
-		$dsninfo['persistent'] = $this->persistent;
-
-		return $dsninfo;
-	}
-
-
-
-	/**
 	 * Your datatype must implement this function, which ensures that there
 	 * are no circular references and that the reference is of the correct
 	 * type (DSN in this example).
 	 *
-	 * @return DSN
+	 * @return self
 	 */
 	public function getRef(Project $p)
 	{
@@ -174,7 +204,7 @@ class DSN extends DataType
 		}
 		$o = $this->ref->getReferencedObject($p);
 		
-		if ( !($o instanceof DSN) ) {
+		if ( !($o instanceof self) ) {
 			throw new BuildException($this->ref->getRefId()." doesn't denote a DSN");
 		}
 
