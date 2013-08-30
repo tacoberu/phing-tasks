@@ -45,7 +45,7 @@ class SchemaManageUpdateTask extends SchemaManageBaseTask
 	/**
 	 * Zpracuje výstup pro proměnnou.
 	 */
-	protected function formatOutputProperty($output, $outloglevel)
+	protected function formatOutputProperty($output, $loglevel)
 	{
 		$out = array();
 		foreach ($output as $row) {
