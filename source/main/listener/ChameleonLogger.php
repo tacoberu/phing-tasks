@@ -23,7 +23,7 @@ require_once 'phing/system/util/Timer.php';
  *
  * @author Martin Takáč <martin@takac.name>
  * @package phing.taco.listener
- */ 
+ */
 class ChameleonLogger implements BuildLogger
 {
 
