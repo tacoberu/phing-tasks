@@ -17,11 +17,14 @@ require_once __dir__ . '/HgBaseTask.php';
 
 
 
+use Taco\Utils\Process;
+
+
 /**
  * Update mercurial repository to last revision, or last revision of branch.
  *
  * @sample
- * hg update -b default
+ * hg update default
  *
  * <hg.update repository="." output="true" branch="default" />
  *
@@ -37,14 +40,35 @@ class HgUpdateTask extends HgBaseTask
 	protected $action = 'update';
 
 
+	/**
+	 * @var string
+	 */
+	protected $branch;
+
 
 	/**
 	 * The setter for the attribute "branch"
 	 */
 	public function setBranch($str)
 	{
-		$this->options['b'] = $str;
+		$this->branch = $str;
 		return $this;
+	}
+
+
+
+	/**
+	 * Isset command line arguments for the executable.
+	 *
+	 * @return Process\Exec
+	 */
+	protected function issetArguments(Process\Exec $exec)
+	{
+		if ($this->branch) {
+			$exec->arg($this->branch);
+		}
+
+		return parent::issetArguments($exec);
 	}
 
 
