@@ -256,9 +256,11 @@ abstract class HgBaseTask extends Task
 			throw new BuildException('"repository" is required parameter');
 		}
 
-		$status = $this->executeCommand();
-		if ($status->code != 0) {
-			throw new BuildException("Task exited with code: {$status->code} and output: " . implode(PHP_EOL, $status->content));
+		try {
+			$status = $this->executeCommand();
+		}
+		catch (Process\ExecException $e) {
+			$status = $this->catchException($e);
 		}
 
 		if ($this->outputProperty) {
@@ -333,11 +335,10 @@ abstract class HgBaseTask extends Task
 	/**
 	 * Isset command line arguments for the executable.
 	 *
-	 * @return string
+	 * @return Process\Exec
 	 */
 	protected function issetArguments(Process\Exec $exec)
 	{
-		$args = array();
 		$options = $this->options;
 
 		foreach ($this->args as $i => $arg) {
@@ -389,6 +390,17 @@ abstract class HgBaseTask extends Task
 
 
 
+	/**
+	 * @param Process\ExecException $e
+	 * @throw BuildException if code != 0
+	 * @return object {code, content} 
+	 */
+	protected function catchException(Process\ExecException $e)
+	{
+		throw new BuildException("Task exited with code: {$e->getCode()} and output: " . $e->getMessage());
+	}
+
+
 }
 
 
@@ -428,11 +440,14 @@ class TacoArgument
 	/**
 	 * Sets a single commandline argument.
 	 *
+	 * Notice!: <arg name="f" /> => name => false
+	 *
 	 * @param string $value a single commandline argument.
 	 */
 	public function setName($value)
 	{
 		$this->name = trim($value);
+		$this->name = trim($this->name, '-');
 		return $this;
 	}
 

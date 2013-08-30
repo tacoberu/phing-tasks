@@ -20,6 +20,11 @@ require_once __dir__ . '/HgBaseTask.php';
 /**
  * Update mercurial repository to last revision, or last revision of branch.
  *
+ * @sample
+ * hg update -b default
+ *
+ * <hg.update repository="." output="true" branch="default" />
+ *
  * @package phing.tasks.taco
  */
 class HgUpdateTask extends HgBaseTask
@@ -34,18 +39,12 @@ class HgUpdateTask extends HgBaseTask
 
 
 	/**
-	 * The branch passed in the buildfile.
-	 */
-	private $branch = null;
-
-
-
-	/**
 	 * The setter for the attribute "branch"
 	 */
 	public function setBranch($str)
 	{
-		$this->branch = $str;
+		$this->options['b'] = $str;
+		return $this;
 	}
 
 
