@@ -93,7 +93,7 @@ class HgBrancheTask extends HgBaseTask
 	 *		%name%	Jméno branche.
 	 *		%changeset%	hexa hash changesetu.
 	 *
-	 *	@param string 
+	 *	@param string
 	 *	@return this
 	 */
 	public function setFormat($value)
@@ -107,7 +107,7 @@ class HgBrancheTask extends HgBaseTask
 	/**
 	 * Oddělovače jednotlivých branchí.
 	 *
-	 * @param string 
+	 * @param string
 	 * @return this
 	 */
 	public function setSeparator($value)

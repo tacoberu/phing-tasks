@@ -11,13 +11,13 @@
  *
  * @author     Martin Takáč (martin@takac.name)
  */
- 
+
 require_once "phing/Task.php";
 require_once __dir__ . '/HgStatusTask.php';
 
 
 /**
- *  Validation 
+ *  Validation
  *
  * [code]
  *		<hg.assert-clean repository="${dir.source.repository}">Prázdný repozitář.</hg.assert>
@@ -33,10 +33,10 @@ class HgAssertCleanTask extends HgStatusTask
 	 * Text chybové hlášky.
 	 */
 	private $message = "No message";
-	
+
 
 	/**
-	 * Supporting the <task>Message</task> syntax. 
+	 * Supporting the <task>Message</task> syntax.
 	 */
 	function addText($msg)
 	{

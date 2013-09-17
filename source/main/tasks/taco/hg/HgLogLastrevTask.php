@@ -9,10 +9,11 @@
  *
  * PHP version 5.3
  *
- * @author     Martin Takáč (martin@takac.name)
+ * @author	 Martin Takáč (martin@takac.name)
  */
 
 require_once "phing/Task.php";
+require_once __dir__ . '/HgBaseTask.php';
 
 
 
@@ -24,19 +25,14 @@ require_once "phing/Task.php";
  *
  * @package phing.tasks.taco
  */
-class HgLogLastrevTask extends Task
+class HgLogLastrevTask extends HgBaseTask
 {
 
 	/**
-	 *	Kde najdem program.
+	 * Action to execute: status, update, install
+	 * @var string
 	 */
-	const BIN = '/usr/bin/hg';
-
-
-	/**
-	 * repository.
-	 */
-	private $repository;
+	protected $action = 'log';
 
 
 	/**
@@ -46,16 +42,9 @@ class HgLogLastrevTask extends Task
 
 
 	/**
-	 * 
+	 * @var string
 	 */
-	private $branch;
-
-
-	/**
-	 * Property to be set
-	 * @var string $property
-	 */
-	private $property;
+	protected $branch;
 
 
 	
@@ -66,28 +55,15 @@ class HgLogLastrevTask extends Task
 	private $filterChains = array();
 
 
-	/**
-	 * Set repository directory
-	 *
-	 * @param string $repository Repo directory
-	 * @return this
-	 */
-	public function setRepository(PhingFile $repository)
-	{
-		$this->repository = $repository;
-		return $this;
-	}
 
 
 
 	/**
-	 * Set branch for head checkset
-	 * @param PhingFile $file
-	 * @return this
+	 * The setter for the attribute "branch"
 	 */
-	public function setBranch($value)
+	public function setBranch($str)
 	{
-		$this->branch = $value;
+		$this->branch = $str;
 		return $this;
 	}
 
@@ -105,22 +81,10 @@ class HgLogLastrevTask extends Task
 
 
 	/**
-	 * Set name of property to be set
-	 * @param $property
-	 * @return this
-	 */
-	public function setProperty($property)
-	{
-		$this->property = $property;
-		return $this;
-	}
-
-
-
-	/**
 	 * Creates a filterchain
 	 *
 	 * @return  object  The created filterchain object
+	 * @TODO
 	 */
 	function createFilterChain()
 	{
@@ -131,11 +95,35 @@ class HgLogLastrevTask extends Task
 
 
 	/**
-	 * Zpracovat výsutp.
+	 * Executes the command and returns return code and output.
+	 *
+	 * @return array array(return code, array with output)
+	 */
+	protected function buildExecute()
+	{
+		if (isset($this->branch)) {
+			$this->action = 'log';
+			$this->options['l'] = '1';
+			$this->options['b'] = $this->branch;
+		}
+		else {
+			$this->action = 'tip';
+		}
+		
+		$exec = parent::buildExecute();
+		return $exec;
+	}
+
+
+
+	/**
+	 * Zpracovat výstup. Rozprazsuje řádek, vyfiltruje jej zda je větší jak revize a naformátuje jej do výstupu.
+	 *
+	 * @param array of string Položky branch + id:hash
 	 *
 	 * @return string
 	 */
-	protected function filterOutput($output)
+	protected function formatOutput(array $output)
 	{
 		$mask = array();
 		foreach ($output as $row) {
@@ -150,109 +138,6 @@ class HgLogLastrevTask extends Task
 		return strtr($this->format, $mask);
 	}
 
-
-
-	/**
-	 * Prepares the command building and execution, i.e.
-	 * changes to the specified directory.
-	 *
-	 * @return void
-	 */
-	protected function prepare()
-	{
-		if ($this->repository === null) {
-			return;
-		}
-
-		// expand any symbolic links first
-		if (!$this->repository->getCanonicalFile()->isDirectory()) {
-			throw new BuildException(
-				"'" . (string) $this->repository . "' is not a valid directory"
-			);
-		}
-		$this->currdir = getcwd();
-		@chdir($this->repository->getPath());
-		$this->command = self::BIN;
-		if (isset($this->branch)) {
-			$this->command .= ' log -l 1 -b ' . $this->branch;
-		}
-		else {
-			$this->command .= ' tip';
-		}
-	}
-
-
-
-	/**
-	 * Executes the command and returns return code and output.
-	 *
-	 * @return array array(return code, array with output)
-	 */
-	protected function executeCommand()
-	{
-		$output = array();
-		$return = null;
-		
-#		if ($this->passthru) {
-#			passthru($this->command, $return);
-#		}
-#		else {
-			exec($this->command, $output, $return);
-#		}
-		$this->log('Executing command: ' . $this->command, Project::MSG_VERBOSE);
-
-		return array($return, $output);
-	}
-
-
-
-	/**
-	 * Runs all tasks after command execution:
-	 * - change working directory back
-	 * - log output
-	 * - verify return value
-	 *
-	 * @param integer $return Return code
-	 * @param array   $output Array with command output
-	 *
-	 * @return void
-	 */
-	protected function cleanup($return, $output)
-	{
-		if ($this->repository !== null) {
-			@chdir($this->currdir);
-		}
-
-		if ($return != 0) {
-			throw new BuildException("Task exited with output $output");
-		}
-
-		$output = $this->filterOutput($output);
-
-		if ($this->property) {
-			$this->project->setProperty($this->property, $output);
-		}
-
-	}
-
-
-
-	/**
-	 * The main entry point method.
-	 */
-	public function main()
-	{
-		if (null === $this->repository) {
-			throw new BuildException('"repository" is required parameter');
-		}
-		if (null === $this->format) {
-			throw new BuildException('"revFrom" is required parameter');
-		}
-
-		$this->prepare();
-		list($return, $output) = $this->executeCommand();
-		$this->cleanup($return, $output);
-	}
 
 
 

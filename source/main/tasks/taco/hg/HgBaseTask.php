@@ -128,6 +128,7 @@ abstract class HgBaseTask extends Task
 	public function setBin($str)
 	{
 		$this->bin = $str;
+		return $this;
 	}
 
 
@@ -201,6 +202,7 @@ abstract class HgBaseTask extends Task
     public function setReturnProperty($prop)
     {
         $this->returnProperty = $prop;
+		return $this;
     }
 
 
@@ -215,7 +217,21 @@ abstract class HgBaseTask extends Task
     public function setOutputProperty($prop)
     {
         $this->outputProperty = $prop;
+		return $this;
     }
+
+
+
+	/**
+	 * Set name of property to be set
+	 * @param $property
+	 * @return this
+	 */
+	public function setProperty($property)
+	{
+		$this->setOutputProperty($property);
+		return $this;
+	}
 
 
 
@@ -229,6 +245,7 @@ abstract class HgBaseTask extends Task
     public function setOutput($bool)
     {
         $this->output = (bool) $bool;
+		return $this;
     }
 
 
@@ -252,9 +269,7 @@ abstract class HgBaseTask extends Task
 	 */
 	public function main()
 	{
-		if (null === $this->repository) {
-			throw new BuildException('"repository" is required parameter');
-		}
+		$this->assertRequiredParams();
 
 		try {
 			$status = $this->executeCommand();
@@ -279,7 +294,42 @@ abstract class HgBaseTask extends Task
 			}
 		}
 	}
-	
+
+
+
+	/**
+	 * @throw BuildException that not requred params.
+	 */
+	protected function assertRequiredParams()
+	{
+		if (null === $this->repository) {
+			throw new BuildException('"repository" is required parameter');
+		}
+
+		// expand any symbolic links first
+		if (!$this->repository->getCanonicalFile()->isDirectory()) {
+			throw new BuildException("'" . (string) $this->repository . "' is not a valid directory");
+		}
+	}
+
+
+
+	/**
+	 * Executes the command and returns return code and output.
+	 *
+	 * @return array array(return code, array with output)
+	 */
+	protected function executeCommand()
+	{
+		$exec = $this->buildExecute()
+			->setWorkDirectory($this->repository->getPath());
+		$exec = $this->issetArguments($exec);
+
+		$this->log($exec->dryRun(), Project::MSG_VERBOSE);
+
+		return $exec->run();
+	}
+
 
 
 	/**
@@ -292,7 +342,7 @@ abstract class HgBaseTask extends Task
 		if ($this->exec) {
 			return $this->exec;
 		}
-	
+
 		if (empty($this->bin)) {
 			throw new BuildException('"bin" is not empty parameter');
 		}
@@ -301,33 +351,6 @@ abstract class HgBaseTask extends Task
 		$exec->arg($this->action);
 
 		return $exec;
-	}
-
-
-
-	/**
-	 * Executes the command and returns return code and output.
-	 *
-	 * @return array array(return code, array with output)
-	 */
-	protected function executeCommand()
-	{
-		if ($this->repository === null) {
-			return;
-		}
-
-		// expand any symbolic links first
-		if (!$this->repository->getCanonicalFile()->isDirectory()) {
-			throw new BuildException("'" . (string) $this->repository . "' is not a valid directory");
-		}
-
-		$exec = $this->buildExecute()
-			->setWorkDirectory($this->repository->getPath());
-		$exec = $this->issetArguments($exec);
-
-		$this->log($exec->dryRun(), Project::MSG_VERBOSE);
-		
-		return $exec->run();
 	}
 
 
@@ -370,7 +393,7 @@ abstract class HgBaseTask extends Task
 				}
 			}
 		}
-		
+
 		return $exec;
 	}
 
@@ -393,7 +416,7 @@ abstract class HgBaseTask extends Task
 	/**
 	 * @param Process\ExecException $e
 	 * @throw BuildException if code != 0
-	 * @return object {code, content} 
+	 * @return object {code, content}
 	 */
 	protected function catchException(Process\ExecException $e)
 	{
@@ -423,7 +446,7 @@ class TacoArgument
 	}
 
 
-	
+
 	/**
 	 * Sets a single commandline argument.
 	 *
@@ -452,11 +475,11 @@ class TacoArgument
 	}
 
 
-	
+
 	/**
 	 * gets a single commandline argument.
 	 *
-	 * @param string 
+	 * @param string
 	 */
 	public function getValue()
 	{

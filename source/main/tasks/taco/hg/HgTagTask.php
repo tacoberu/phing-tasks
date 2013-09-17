@@ -142,7 +142,7 @@ class HgTagTask extends HgBaseTask
 	 *		%name%	Jméno branche.
 	 *		%changeset%	hexa hash changesetu.
 	 *
-	 *	@param string 
+	 *	@param string
 	 *	@return this
 	 */
 	public function setFormat($value)
@@ -155,7 +155,8 @@ class HgTagTask extends HgBaseTask
 
 	/**
 	 * Oddělovače jednotlivých branchí.
-	 *	 * @param string 
+	 *
+	 * @param string
 	 * @return this
 	 */
 	public function setSeparator($value)
@@ -168,7 +169,8 @@ class HgTagTask extends HgBaseTask
 
 	/**
 	 * Kolik tagů nás zajímá.
-	 *	 * @param string 
+	 *
+	 * @param string
 	 * @return this
 	 */
 	public function setLimit($value)
@@ -182,7 +184,7 @@ class HgTagTask extends HgBaseTask
 	/**
 	 * -b default
 	 *
-	 * @param string 
+	 * @param string
 	 * @return this
 	 */
 	public function setBranch($value)
@@ -230,10 +232,10 @@ class HgTagTask extends HgBaseTask
 				$ret[] = strtr($this->format, $mask);
 			}
 		}
-		
+
 		//	Vyříznout jen určitý počet
 		$ret = array_slice($ret, $this->offset, $this->limit);
-		
+
 		return implode($this->separator, $ret);
 	}
 
