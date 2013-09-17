@@ -1,6 +1,7 @@
 {
     "name": "tacoberu/phing-tasks",
     "description": "Another my tasks for phing build system.",
+    "type": "library",
     "keywords": ["build", "tool", "task", "phing"],
     "license": "MIT",
     "authors": [
