@@ -313,8 +313,10 @@ abstract class SchemaManageBaseTask extends Task
 			$status = $this->catchException($e);
 		}
 
+		$outloglevel = $this->output ? Project::MSG_VERBOSE : Project::MSG_INFO;
+
 		if ($this->outputProperty) {
-			$this->project->setProperty($this->outputProperty, $this->formatOutput($status->content));
+			$this->project->setProperty($this->outputProperty, $this->formatOutput($status->content, $outloglevel));
 		}
 
 		if ($this->returnProperty) {
@@ -322,7 +324,6 @@ abstract class SchemaManageBaseTask extends Task
 		}
 
 		if ($status->content) {
-			$outloglevel = $this->output ? Project::MSG_VERBOSE : Project::MSG_INFO;
 			$out = $this->formatOutput($status->content, $outloglevel);
 			if ($out) {
 				$this->log($out, $this->logLevel);
