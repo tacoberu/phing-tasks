@@ -16,6 +16,10 @@ require_once "phing/Task.php";
 
 
 
+use Taco\Utils\Process;
+
+
+
 /**
  * Base class for SchemaManage
  *
@@ -24,266 +28,80 @@ require_once "phing/Task.php";
 abstract class SchemaManageBaseTask extends Task
 {
 
-    /**
-     * Destination of schema-manage runtime.
-     * @var string
-     */
-    protected $bin = '/usr/bin/schema-manage';
+	/**
+	 * Destination of schema-manage runtime.
+	 * @var string
+	 */
+	protected $bin = '/usr/bin/schema-manage';
 
 
-    /**
-     * Command to execute.
-     * @var string
-     */
-    protected $command;
+	/**
+	 * Exec for executing process.
+	 * @var Process\Exec
+	 */
+	protected $exec;
 
 
-    /**
-     * Action to execute: status, update, install
-     * @var string
-     */
-    protected $action;
+	/**
+	 * Action to execute: status, update, install
+	 * @var string
+	 */
+	protected $action = 'status';
 
 
-    /**
-     * Working directory.
-     * @var PhingFile
-     */
-    protected $dir;
-
-
-    /**
-     * Whether to use PHP's passthru() function instead of exec()
-     * @var boolean
-     */
-    protected $passthru = false;
-
-
-    /**
-     * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
-     * @var boolean
-     */
-    protected $logOutput = false;
-
-
-
-    /**
-     * Logging level for status messages
-     * @var integer
-     */
-    protected $logLevel = Project::MSG_INFO;
+	/**
+	 * Working directory.
+	 * @var PhingFile
+	 */
+	protected $dir;
 
 
 
 	/**
-	 * The database
+	 * Logging level for status messages
+	 * @var integer
 	 */
-	protected $database = null;
-
-
-	/**
-	 * The host
-	 */
-	protected $host = null;
-
-
-	/**
-	 * The userlogin
-	 */
-	protected $userlogin = Null;
-
-
-	/**
-	 * The userpassword
-	 */
-	protected $userpassword = Null;
-
-
-	/**
-	 * The adminlogin
-	 */
-	protected $adminlogin = Null;
-
-
-	/**
-	 * The adminpassword
-	 */
-	protected $adminpassword = Null;
-
-
-    /**
-     * Property name to set with return value from exec call.
-     *
-     * @var string
-     */
-    protected $returnProperty;
-
-
-
-    /**
-     * Property name to set with output value from exec call.
-     *
-     * @var string
-     */
-    protected $outputProperty;
+	protected $logLevel = Project::MSG_INFO;
 
 
 
 	/**
-	 * The setter for the attribute "bin"
+	 * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
+	 * @var boolean
 	 */
-	public function setBin($str)
-	{
-		$this->bin = $str;
-	}
+	protected $output = false;
 
 
+	/**
+	 * Jméno databáze.
+	 * @var string
+	 */
+	protected $database;
 
-    /**
-     * Specify the working directory for executing this command.
-     * @param PhingFile $dir
-     */
-    function setDir(PhingFile $dir)
-    {
-        $this->dir = $dir;
-    }
+
+	/**
+	 * Property name to set with return value from exec call.
+	 *
+	 * @var string
+	 */
+	protected $returnProperty;
+
+
+	/**
+	 * Property name to set with output value from exec call.
+	 *
+	 * @var string
+	 */
+	protected $outputProperty;
 
 
 
 	/**
-	 * The setter for the attribute "database"
+	 * Default options for ...
+	 *
+	 * @var array
 	 */
-	public function setDatabase($str)
-	{
-		$this->database = trim($str);
-	}
-
-
-
-	/**
-	 * The setter for the attribute "host"
-	 */
-	public function setHost($str)
-	{
-		$this->host = trim($str);
-	}
-
-
-
-	/**
-	 * The setter for the attribute "user-login"
-	 */
-	public function setUserlogin($str)
-	{
-		$this->userlogin = trim($str);
-	}
-
-
-
-	/**
-	 * The setter for the attribute "host-password"
-	 */
-	public function setUserpassword($str)
-	{
-		$this->userpassword = trim($str);
-	}
-
-
-
-	/**
-	 * The setter for the attribute "admin-login"
-	 */
-	public function setAdminlogin($str)
-	{
-		$this->adminlogin = trim($str);
-	}
-
-
-
-	/**
-	 * The setter for the attribute "admin-password"
-	 */
-	public function setAdminpassword($str)
-	{
-		$this->adminpassword = trim($str);
-	}
-
-
-
-    /**
-     * The name of property to set to return value from exec() call.
-     *
-     * @param string $prop Property name
-     *
-     * @return void
-     */
-    public function setReturnProperty($prop)
-    {
-        $this->returnProperty = $prop;
-    }
-
-
-
-    /**
-     * The name of property to set to output value from exec() call.
-     *
-     * @param string $prop Property name
-     *
-     * @return void
-     */
-    public function setOutputProperty($prop)
-    {
-        $this->outputProperty = $prop;
-    }
-
-
-
-    /**
-     * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
-     *
-     * @param boolean $logOutput If output shall be logged visibly
-     *
-     * @return void
-     */
-    public function setLogoutput($logOutput)
-    {
-        $this->logOutput = (bool) $logOutput;
-    }
-
-
-
-    /**
-     * Set level of log messages generated (default = verbose)
-     *
-     * @param string $level Log level
-     *
-     * @return void
-     */
-    public function setLevel($level)
-    {
-        switch ($level) {
-        case 'error':
-            $this->logLevel = Project::MSG_ERR;
-            break;
-        case 'warning':
-            $this->logLevel = Project::MSG_WARN;
-            break;
-        case 'info':
-            $this->logLevel = Project::MSG_INFO;
-            break;
-        case 'verbose':
-            $this->logLevel = Project::MSG_VERBOSE;
-            break;
-        case 'debug':
-            $this->logLevel = Project::MSG_DEBUG;
-            break;
-        default:
-            throw new BuildException(
-                sprintf('Unknown log level "%s"', $level)
-            );
-        }
-    }
-
+	protected $options = array();
 
 
 	/**
@@ -303,103 +121,427 @@ abstract class SchemaManageBaseTask extends Task
 
 
 	/**
-	 * The main entry point method.
+	 * The setter for the attribute "bin"
 	 */
-	public function main()
+	public function setBin($str)
 	{
-        if (null === $this->dir) {
-            throw new BuildException('"dir" is required parameter');
-        }
-
-        $this->prepare();
-        list($return, $output) = $this->executeCommand();
-        $this->cleanup($return, $output);
+		$this->bin = $str;
+		return $this;
 	}
 
 
 
-    /**
-     * Prepares the command building and execution, i.e.
-     * changes to the specified directory.
-     *
-     * @return void
-     */
-    protected function prepare()
-    {
-        if (empty($this->action)) {
-            throw new \LogicException("Not set action.");
-        }
+	/**
+	 * The setter for process.
+	 */
+	public function setExec(Process\Exec $exec)
+	{
+		$this->exec = $exec;
+		return $this;
+	}
 
-        if (empty($this->bin)) {
-            throw new BuildException("Not set bin with schema-manage runtime.");
-        }
 
-        if (!$this->dir->getCanonicalFile()->isDirectory()) {
-            throw new BuildException("'" . (string) $this->dir . "' is not a valid directory.");
-        }
 
-        foreach ($this->buildParams() as $name => $value) {
-        	$params[] = '--' . $name . ' ' . $value;
-        }
-        $this->currdir = getcwd();
-        @chdir($this->dir->getPath());
+	/**
+	 * Specify the working directory for executing this command.
+	 * @param PhingFile $dir
+	 */
+	function setDir(PhingFile $dir)
+	{
+		$this->dir = $dir;
+		return $this;
+	}
 
-        if (count($params)) {
-        	$params = ' ' . implode(' ', $params);
-        }
-        else {
-        	$params = Null;
-        }
+
+
+	/**
+	 * Set level of log messages generated (default = verbose)
+	 *
+	 * @param string $level Log level
+	 *
+	 * @return void
+	 */
+	public function setLevel($level)
+	{
+		switch ($level) {
+			case 'error':
+				$this->logLevel = Project::MSG_ERR;
+				break;
+			case 'warning':
+				$this->logLevel = Project::MSG_WARN;
+				break;
+			case 'info':
+				$this->logLevel = Project::MSG_INFO;
+				break;
+			case 'verbose':
+				$this->logLevel = Project::MSG_VERBOSE;
+				break;
+			case 'debug':
+				$this->logLevel = Project::MSG_DEBUG;
+				break;
+			default:
+				throw new BuildException(sprintf('Unknown log level "%s"', $level));
+		}
+	}
+
+
+
+	/**
+	 * The name of property to set to return value from exec() call.
+	 *
+	 * @param string $prop Property name
+	 *
+	 * @return void
+	 */
+	public function setReturnProperty($prop)
+	{
+		$this->returnProperty = $prop;
+		return $this;
+	}
+
+
+
+	/**
+	 * The name of property to set to output value from exec() call.
+	 *
+	 * @param string $prop Property name
+	 *
+	 * @return void
+	 */
+	public function setOutputProperty($prop)
+	{
+		$this->outputProperty = $prop;
+		return $this;
+	}
+
+
+
+	/**
+	 * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
+	 *
+	 * @param boolean $logOutput If output shall be logged visibly
+	 *
+	 * @return void
+	 */
+	public function setOutput($logOutput)
+	{
+		$this->output = (bool) $logOutput;
+		return $this;
+	}
+
+
+
+
+	/**
+	 * The setter for the attribute "database"
+	 */
+	public function setDatabase($str)
+	{
+		$this->database = $this->options['database'] = trim($str);
+		return $this;
+	}
+
+
+
+	/**
+	 * The setter for the attribute "host"
+	 */
+	public function setHost($str)
+	{
+		$this->options['host'] = trim($str);
+		return $this;
+	}
+
+
+
+	/**
+	 * The setter for the attribute "user-login"
+	 */
+	public function setUserlogin($str)
+	{
+		$this->options['user-login'] = trim($str);
+		return $this;
+	}
+
+
+
+	/**
+	 * The setter for the attribute "host-password"
+	 */
+	public function setUserpassword($str)
+	{
+		$this->options['user-password'] = trim($str);
+		return $this;
+	}
+
+
+
+	/**
+	 * The setter for the attribute "admin-login"
+	 */
+	public function setAdminlogin($str)
+	{
+		$this->options['admin-login'] = trim($str);
+		return $this;
+	}
+
+
+
+	/**
+	 * The setter for the attribute "admin-password"
+	 */
+	public function setAdminpassword($str)
+	{
+		$this->options['admin-password'] = trim($str);
+		return $this;
+	}
+
+
+
+
+	/**
+	 * The main entry point method.
+	 */
+	public function main()
+	{
+		$this->assertRequiredParams();
+
+		try {
+			$status = $this->executeCommand();
+		}
+		catch (Process\ExecException $e) {
+			$status = $this->catchException($e);
+		}
+
+		if ($this->outputProperty) {
+			$this->project->setProperty($this->outputProperty, $this->formatOutput($status->content));
+		}
+
+		if ($this->returnProperty) {
+			$this->project->setProperty($this->returnProperty, $status->code);
+		}
+
+		if ($status->content) {
+			$outloglevel = $this->output ? Project::MSG_VERBOSE : Project::MSG_INFO;
+			$out = $this->formatOutput($status->content, $outloglevel);
+			if ($out) {
+				$this->log($out, $this->logLevel);
+			}
+		}
+	}
+
+
+
+	/**
+	 * @throw BuildException that not requred params.
+	 */
+	protected function assertRequiredParams()
+	{
+		if (null === $this->dir) {
+			throw new BuildException('"dir" is required parameter');
+		}
+
+		// expand any symbolic links first
+		if (!$this->dir->getCanonicalFile()->isDirectory()) {
+			throw new BuildException("'" . (string) $this->dir . "' is not a valid directory");
+		}
+	}
+
+
+
+	/**
+	 * Executes the command and returns return code and output.
+	 *
+	 * @return array array(return code, array with output)
+	 */
+	protected function executeCommand()
+	{
+		$exec = $this->buildExecute()
+			->setWorkDirectory($this->dir->getPath());
+		$exec = $this->issetArguments($exec);
+
+		$this->log($exec->dryRun(), Project::MSG_VERBOSE);
+
+		return $exec->run();
+	}
+
+
+
+	/**
+	 * Executes the command and returns return code and output.
+	 *
+	 * @return array array(return code, array with output)
+	 */
+	protected function buildExecute()
+	{
+		if ($this->exec) {
+			return $this->exec;
+		}
+
+		if (empty($this->bin)) {
+			throw new BuildException('"bin" is not empty parameter');
+		}
+
+		$exec = new Process\Exec($this->bin);
+		$exec->arg($this->action);
+
+		return $exec;
+	}
+
+
+
+	/**
+	 * Isset command line arguments for the executable.
+	 *
+	 * @return Process\Exec
+	 */
+	protected function issetArguments(Process\Exec $exec)
+	{
+		$options = $this->options;
+
+//		foreach ($this->args as $i => $arg) {
+//			if (! $arg->getName()) {
+//				throw new BuildException("Invalid $i-line argument. Name is not set.");
+//			}
+//			$options[$arg->getName()] = $arg->getValue();
+//		}
+
+		foreach ($options as $name => $value) {
+			if ($value === False) {
+				continue;
+			}
+
+			if (empty($value)) {
+				if (strlen($name) == 1) {
+					$exec->arg("-$name");
+				}
+				else {
+					$exec->arg("--$name");
+				}
+			}
+			else {
+				if (strlen($name) == 1) {
+					$exec->arg("-$name $value");
+				}
+				else {
+					$exec->arg("--$name $value");
+				}
+			}
+		}
+
+		return $exec;
+	}
+
+
+
+	/**
+	 * Zpracovat výstup. Rozprazsuje řádek, vyfiltruje jej zda je větší jak revize a naformátuje jej do výstupu.
+	 *
+	 * @param array of string Položky branch + id:hash
+	 *
+	 * @return string
+	 */
+	protected function formatOutput(array $output)
+	{
+		return implode(PHP_EOL, $output);
+	}
+
+
+
+	/**
+	 * @param Process\ExecException $e
+	 * @throw BuildException if code != 0
+	 * @return object {code, content}
+	 */
+	protected function catchException(Process\ExecException $e)
+	{
+		throw new BuildException("Task exited with code: {$e->getCode()} and output: " . $e->getMessage());
+	}
+
+
+
+	/**
+	 * Prepares the command building and execution, i.e.
+	 * changes to the specified directory.
+	 *
+	 * @return void
+	 */
+	protected function prepare()
+	{
+		if (empty($this->action)) {
+			throw new \LogicException("Not set action.");
+		}
+
+		if (empty($this->bin)) {
+			throw new BuildException("Not set bin with schema-manage runtime.");
+		}
+
+		if (!$this->dir->getCanonicalFile()->isDirectory()) {
+			throw new BuildException("'" . (string) $this->dir . "' is not a valid directory.");
+		}
+
+		foreach ($this->buildParams() as $name => $value) {
+			$params[] = '--' . $name . ' ' . $value;
+		}
+		$this->currdir = getcwd();
+		@chdir($this->dir->getPath());
+
+		if (count($params)) {
+			$params = ' ' . implode(' ', $params);
+		}
+		else {
+			$params = Null;
+		}
 		$this->command = $this->bin . ' ' . $this->action . $params;
-    }
+	}
 
 
 
-    /**
-     * Executes the command and returns return code and output.
-     *
-     * @return array array(return code, array with output)
-     */
-    protected function executeCommand()
-    {
-        $output = array();
-        $return = null;
+	/**
+	 * Executes the command and returns return code and output.
+	 *
+	 * @return array array(return code, array with output)
+	 */
+	protected function _executeCommand()
+	{
+		$output = array();
+		$return = null;
 
-        if ($this->passthru) {
-            passthru($this->command, $return);
-        }
-        else {
-            exec($this->command, $output, $return);
-        }
+		if ($this->passthru) {
+			passthru($this->command, $return);
+		}
+		else {
+			exec($this->command, $output, $return);
+		}
 
-        //	schema-manage vrací špatné návratové hodnoty.
-        if (strpos(implode('', $output), '[Error]') !== False) {
-        	$return = 1;
-        }
+		//	schema-manage vrací špatné návratové hodnoty.
+		if (strpos(implode('', $output), '[Error]') !== False) {
+			$return = 1;
+		}
 
-        $this->log('Executing command: [' . $this->command . '], in workdir: ['
-        		. $this->dir->getPath() . '], with returning code: '
-        		. $return,
-        		Project::MSG_VERBOSE);
+		$this->log('Executing command: [' . $this->command . '], in workdir: ['
+				. $this->dir->getPath() . '], with returning code: '
+				. $return,
+				Project::MSG_VERBOSE);
 
-        return array($return, $output);
-    }
+		return array($return, $output);
+	}
 
 
 
-    /**
-     * Runs all tasks after command execution:
-     * - change working directory back
-     * - log output
-     * - verify return value
-     *
-     * @param integer $return Return code
-     * @param array   $output Array with command output
-     *
-     * @return void
-     */
-    protected function cleanup($return, $output)
-    {
+	/**
+	 * Runs all tasks after command execution:
+	 * - change working directory back
+	 * - log output
+	 * - verify return value
+	 *
+	 * @param integer $return Return code
+	 * @param array   $output Array with command output
+	 *
+	 * @return void
+	 */
+	protected function cleanup($return, $output)
+	{
 		if ($this->dir !== null) {
 			@chdir($this->currdir);
 		}
@@ -421,7 +563,7 @@ abstract class SchemaManageBaseTask extends Task
 		if ($return != 0) {
 			throw new BuildException("Task exited with code $return and message: " . implode("\n", $output));
 		}
-    }
+	}
 
 
 
@@ -456,6 +598,19 @@ abstract class SchemaManageBaseTask extends Task
 		}
 
 		return $ret;
+	}
+
+
+
+
+
+
+	/**
+	 * @deprecated
+	 */
+	public function setLogoutput($logOutput)
+	{
+		$this->output = (bool) $logOutput;
 	}
 
 

@@ -45,7 +45,7 @@ class SchemaManageUpdateTask extends SchemaManageBaseTask
 	/**
 	 * Zpracuje výstup pro proměnnou.
 	 */
-	protected function formatOutputProperty($output, $loglevel)
+	protected function formatOutput($output, $loglevel)
 	{
 		$out = array();
 		foreach ($output as $row) {
@@ -53,7 +53,7 @@ class SchemaManageUpdateTask extends SchemaManageBaseTask
 				$out = array();
 				continue;
 			}
-			
+
 			if (strpos($row, '[Success]') !== False) {
 				continue;
 			}
@@ -62,7 +62,7 @@ class SchemaManageUpdateTask extends SchemaManageBaseTask
 				$out[] = $row;
 				continue;
 			}
-			
+
 			$msg[] = $row;
 		}
 

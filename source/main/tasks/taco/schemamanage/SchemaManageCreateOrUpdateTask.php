@@ -28,7 +28,7 @@ class SchemaManageCreateOrUpdateTask extends SchemaManageBaseTask
 	/**
 	 *
 	 */
-	protected function formatOutputProperty($output)
+	protected function formatOutput($output)
 	{
 		$out = array();
 		foreach ($output as $row) {

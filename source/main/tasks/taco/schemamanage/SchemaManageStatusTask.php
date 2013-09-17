@@ -45,7 +45,7 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 	/**
 	 * Zpracuje výstup pro proměnnou.
 	 */
-	protected function formatOutputProperty($output, $loglevel)
+	protected function formatOutput($output, $loglevel)
 	{
 		$match = array();
 		foreach ($output as $row) {
@@ -59,7 +59,7 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 				continue;
 			}
 		}
-		
+
 		if (count($match) != 2) {
 			return '[' . $this->database . ']: Invalid status of repository.';
 		}
@@ -85,6 +85,6 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 		}
 		return '[' . $this->database . ']: Invalid format of status: ' . PHP_EOL . implode(PHP_EOL, $output);
 	}
-    
+
 
 }
