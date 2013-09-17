@@ -95,7 +95,10 @@ class HgLogFilesTask extends HgBaseTask
 	 */
 	public function setRevFrom($value)
 	{
-		$this->revFrom = $value;
+		$this->revFrom = strtr(trim($value), array(
+				PHP_EOL => '',
+				));
+		
 		return $this;
 	}
 
@@ -157,6 +160,7 @@ class HgLogFilesTask extends HgBaseTask
 	protected function formatOutput(array $output)
 	{
 		unset($output[count($output) - 1]);
+
 		$ret = array();
 		foreach ($output as $row) {
 #			$row = preg_replace('~|.*$~', '', trim($row));

@@ -20,6 +20,8 @@ require_once __dir__ . '/HgBaseTask.php';
 /**
  * HgLogLastrevTask
  *
+ * <hg.log.lastrev format="id" repository="${dir.source.repository}" property="rev-actual" branch="default" />
+ *
  * Loads last revision of mercurial repozitory.
  * Supports filterchains.
  *
