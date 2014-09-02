@@ -1,0 +1,117 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "4d28492ee575700d58f23f56ff821eab",
+    "packages": [
+        {
+            "name": "tacoberu/phing-tasks",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tacoberu/phing-tasks.git",
+                "reference": "e3231fb5bfa5055307442289e028988c9426b6d7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tacoberu/phing-tasks/zipball/e3231fb5bfa5055307442289e028988c9426b6d7",
+                "reference": "e3231fb5bfa5055307442289e028988c9426b6d7",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0",
+                "tacoberu/php-process": "dev-master"
+            },
+            "require-dev": {
+                "phing/phing": "dev-master"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "source/"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Martin Takáč",
+                    "email": "martin@takac.name",
+                    "homepage": "http://martin.takac.name"
+                }
+            ],
+            "description": "Another my tasks for phing build system.",
+            "keywords": [
+                "build",
+                "phing",
+                "task",
+                "tool"
+            ],
+            "support": {
+                "source": "https://github.com/tacoberu/phing-tasks/tree/master",
+                "issues": "https://github.com/tacoberu/phing-tasks/issues"
+            },
+            "time": "2013-09-17 20:17:10"
+        },
+        {
+            "name": "tacoberu/php-process",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tacoberu/php-process.git",
+                "reference": "f6ef410d3a4f57c5de0a9a9467fe876605dabe0b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tacoberu/php-process/zipball/f6ef410d3a4f57c5de0a9a9467fe876605dabe0b",
+                "reference": "f6ef410d3a4f57c5de0a9a9467fe876605dabe0b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Taco": "lib/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Martin Takáč",
+                    "email": "martin@takac.name",
+                    "homepage": "http://martin.takac.name"
+                }
+            ],
+            "description": "Wraper for calling process.",
+            "keywords": [
+                "bash",
+                "process",
+                "sh"
+            ],
+            "support": {
+                "source": "https://github.com/tacoberu/php-process/tree/master",
+                "issues": "https://github.com/tacoberu/php-process/issues"
+            },
+            "time": "2013-09-12 19:42:53"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "tacoberu/phing-tasks": 20,
+        "tacoberu/php-process": 20
+    },
+    "prefer-stable": false,
+    "platform": {
+        "php": ">=5.3.0"
+    },
+    "platform-dev": []
+}

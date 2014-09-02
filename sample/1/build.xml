@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<project name="phing-tasks" basedir="." default="build">
+
+	<property file="./build.properties" override="true"/>
+
+	<taskdef file="${project.basedir}/vendor/tacoberu/phing-tasks/source/main/tasks/tasks.properties"
+			classpath="${project.basedir}/vendor/tacoberu/phing-tasks/source/main"
+			/>
+
+    <target name="build">
+		<echo>Ahoj - default</echo>
+		<echo level="debug">Ahoj - debug</echo>
+		<fail>toto je chyba</fail>
+    </target>
+
+</project>
