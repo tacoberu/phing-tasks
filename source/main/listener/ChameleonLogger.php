@@ -35,12 +35,12 @@ class ChameleonLogger implements BuildLogger
 
 
 	/**
-	 *  -Dchameleon.file.html.log=<soubor s logem>
-	 *  -Dchameleon.file.html.error=<soubor s chybovkama>
+	 *  -Dchameleon.html.log=<soubor s logem>
+	 *  -Dchameleon.html.error=<soubor s chybovkama>
 	 */
 	public function __construct($a)
 	{
-		if (Phing::getDefinedProperty('chameleon.html.log')) {
+		if (Phing::getDefinedProperty('chameleon.html.log') || Phing::getDefinedProperty('chameleon.html.error')) {
 			$this->loggers['html'] = new HtmlColorLogger();
 		}
 		$this->loggers['ansi'] = new AnsiColorLogger();
@@ -76,12 +76,12 @@ class ChameleonLogger implements BuildLogger
 	 */
 	public function setMessageOutputLevel($level)
 	{
-		foreach ($this->loggers as $loggers) {
+		foreach ($this->loggers as $name => $loggers) {
 			switch ($name) {
 				case 'html':
 					if ($value = Phing::getDefinedProperty('chameleon.html.level')) {
 						$loggers->setMessageOutputLevel($value);
-						break;
+						break; // Pokud není nastaven, ať převezme volbu z -verbose | -debug
 					}
 				default:
 					$loggers->setMessageOutputLevel($level);
@@ -126,8 +126,8 @@ class ChameleonLogger implements BuildLogger
 				case 'html':
 					if ($filename = Phing::getDefinedProperty('chameleon.html.error')) {
 						$loggers->setErrorStream(new OutputStream(fopen($filename, "w")));
-						break;
 					}
+					break; // Pokud není nastaven, tak zahazujeme.
 				default:
 					$loggers->setErrorStream($output);
 			}
@@ -243,8 +243,8 @@ class ChameleonLogger implements BuildLogger
      */
     public function messageLogged(BuildEvent $event)
     {
- 		foreach ($this->loggers as $loggers) {
-			$loggers->messageLogged($event);
+ 		foreach ($this->loggers as $logger) {
+			$logger->messageLogged($event);
 		}
    }
 

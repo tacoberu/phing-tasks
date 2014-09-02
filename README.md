@@ -1,7 +1,7 @@
 phing-tasks
 ===========
 
-Another my tasks for phing build system.
+Another my tasks for [phing build system](http://www.phing.info/).
 
 
 ## Using ##
@@ -20,9 +20,36 @@ And link to using tasks. Example this:
 
 or:
 
-    <taskdef file="${project.basedir}/source/main/tasks/tasks.properties"
-    		classpath="${project.basedir}/source/main"
+    <taskdef file="${project.basedir}/vendor/tacoberu/phing-tasks/source/main/tasks/tasks.properties"
+    		classpath="${project.basedir}/vendor/tacoberu/phing-tasks/source/main"
     		/>
+
+
+## Logger ##
+### ChameleonLogger ###
+Umožňuje vypisovat do více cílů a s různě podrobně.
+
+    phing -logger vendor.tacoberu.phing-tasks.source.main.listener.ChameleonLogger -Dchameleon.html.log=log.html -Dchameleon.html.error=error.html -Dchameleon.html.level=4
+
+#### Popis ####
+
+    -Dchameleon.html.log=<soubor s logem>
+
+Soubor, kam se logují provozní informace ve formátu html.
+
+    -Dchameleon.html.error=<soubor s chybovkama>
+
+Soubor, kam se logují chyby ve formátu html.
+
+    -Dchameleon.html.level=1
+
+Úroveň podrobnosti výpisu.
+
+* level=4 - Debug
+* level=3 - Verbose
+* level=2 - Info
+* level=1 - Warning
+* level=0 - Errors
 
 
 ## Tasks ##
