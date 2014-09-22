@@ -11,7 +11,7 @@
  *
  * @author	 Martin Takáč (martin@takac.name)
  */
- 
+
 require_once 'phing/Task.php';
 require_once "phing/types/Commandline.php";
 
@@ -62,7 +62,7 @@ class TacoComposerTask extends Task
      * @var boolean
      */
     protected $logOutput = false;
-    
+
 
 
     /**
@@ -111,7 +111,7 @@ class TacoComposerTask extends Task
         $this->logOutput = (bool) $logOutput;
     }
 
-    
+
 
     /**
      * Set level of log messages generated (default = verbose)
@@ -245,7 +245,7 @@ class TacoComposerTask extends Task
 
 		$this->currdir = getcwd();
 		@chdir($this->dir->getPath());
-		
+
 		if (count($params)) {
 			$params = ' ' . implode(' ', $params);
 		}
@@ -267,20 +267,20 @@ class TacoComposerTask extends Task
 	{
 		$output = array();
 		$return = null;
-		
+
 		if ($this->passthru) {
 			passthru($this->command, $return);
 		}
 		else {
 			exec($this->command, $output, $return);
 		}
-		
+
 		//	schema-manage vrací špatné návratové hodnoty.
 		if (strpos(implode('', $output), '[Error]') !== False) {
 			$return = 1;
 		}
-		$this->log('Executing command: [' . $this->command . '], in workdir: [' 
-				. $this->dir->getPath() . '], with returning code: ' 
+		$this->log('Executing command: [' . $this->command . '], in workdir: ['
+				. $this->dir->getPath() . '], with returning code: '
 				. $return,
 				Project::MSG_VERBOSE);
 
@@ -312,13 +312,13 @@ class TacoComposerTask extends Task
 			$this->log($out, $this->logLevel);
 		}
 
-		if ($this->returnProperty) {
-			$this->project->setProperty($this->returnProperty, $return);
-		}
-
-		if ($out && $this->outputProperty) {
-			$this->project->setProperty($this->outputProperty, $out);
-		}
+		//~ if ($this->returnProperty) {
+			//~ $this->project->setProperty($this->returnProperty, $return);
+		//~ }
+//~
+		//~ if ($out && $this->outputProperty) {
+			//~ $this->project->setProperty($this->outputProperty, $out);
+		//~ }
 
 		if ($return != 0) {
 			throw new BuildException("Task exited with code $return and message: " . implode("\n", $output));

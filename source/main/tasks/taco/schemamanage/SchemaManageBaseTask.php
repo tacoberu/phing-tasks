@@ -95,6 +95,12 @@ abstract class SchemaManageBaseTask extends Task
 	protected $outputProperty;
 
 
+	/**
+	 * Whether to check the return code.
+	 * @var boolean
+	 */
+	protected $checkreturn = True;
+
 
 	/**
 	 * Default options for ...
@@ -197,6 +203,19 @@ abstract class SchemaManageBaseTask extends Task
 	{
 		$this->returnProperty = $prop;
 		return $this;
+	}
+
+
+	/**
+	 * Whether to check the return code.
+	 *
+	 * @param boolean $checkreturn If the return code shall be checked
+	 *
+	 * @return void
+	 */
+	public function setCheckreturn($checkreturn)
+	{
+		$this->checkreturn = (bool) $checkreturn;
 	}
 
 
@@ -316,7 +335,7 @@ abstract class SchemaManageBaseTask extends Task
 		$outloglevel = $this->output ? Project::MSG_VERBOSE : Project::MSG_INFO;
 
 		if ($this->outputProperty) {
-			$this->project->setProperty($this->outputProperty, $this->formatOutput($status->content, $outloglevel));
+			$this->project->setProperty($this->outputProperty, $this->formatOutput($status->content, $outloglevel) ?: '-');
 		}
 
 		if ($this->returnProperty) {
@@ -328,6 +347,10 @@ abstract class SchemaManageBaseTask extends Task
 			if ($out) {
 				$this->log($out, $this->logLevel);
 			}
+		}
+
+		if ($status->code != 0 && $this->checkreturn) {
+			throw new BuildException("Task exited with code {$status->code} and message: " . implode("\n", $status->content));
 		}
 	}
 
@@ -442,7 +465,7 @@ abstract class SchemaManageBaseTask extends Task
 	 *
 	 * @return string
 	 */
-	protected function formatOutput(array $output)
+	protected function formatOutput(array $output, $loglevel)
 	{
 		return implode(PHP_EOL, $output);
 	}
@@ -531,44 +554,6 @@ abstract class SchemaManageBaseTask extends Task
 
 
 	/**
-	 * Runs all tasks after command execution:
-	 * - change working directory back
-	 * - log output
-	 * - verify return value
-	 *
-	 * @param integer $return Return code
-	 * @param array   $output Array with command output
-	 *
-	 * @return void
-	 */
-	protected function cleanup($return, $output)
-	{
-		if ($this->dir !== null) {
-			@chdir($this->currdir);
-		}
-
-		$outloglevel = $this->logOutput ? Project::MSG_VERBOSE : Project::MSG_INFO;
-		$out = $this->formatOutputProperty($output, $outloglevel);
-		if ($out) {
-			$this->log($out, $this->logLevel);
-		}
-
-		if ($this->returnProperty) {
-			$this->project->setProperty($this->returnProperty, $return);
-		}
-
-		if ($out && $this->outputProperty) {
-			$this->project->setProperty($this->outputProperty, $out);
-		}
-
-		if ($return != 0) {
-			throw new BuildException("Task exited with code $return and message: " . implode("\n", $output));
-		}
-	}
-
-
-
-	/**
 	 * Seskládá parametry příkazu.
 	 */
 	private function buildParams()
@@ -600,9 +585,6 @@ abstract class SchemaManageBaseTask extends Task
 
 		return $ret;
 	}
-
-
-
 
 
 

@@ -43,9 +43,13 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 
 
 	/**
-	 * Zpracuje výstup pro proměnnou.
+	 * Zpracovat výstup. Rozprazsuje řádek, vyfiltruje jej zda je větší jak revize a naformátuje jej do výstupu.
+	 *
+	 * @param array of string Položky branch + id:hash
+	 *
+	 * @return string
 	 */
-	protected function formatOutput($output, $loglevel)
+	protected function formatOutput(array $output, $loglevel)
 	{
 		$match = array();
 		foreach ($output as $row) {

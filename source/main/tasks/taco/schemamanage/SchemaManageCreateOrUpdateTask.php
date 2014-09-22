@@ -26,9 +26,13 @@ class SchemaManageCreateOrUpdateTask extends SchemaManageBaseTask
 
 
 	/**
+	 * Zpracovat výstup. Rozprazsuje řádek, vyfiltruje jej zda je větší jak revize a naformátuje jej do výstupu.
 	 *
+	 * @param array of string Položky branch + id:hash
+	 *
+	 * @return string
 	 */
-	protected function formatOutput($output)
+	protected function formatOutput(array $output, $loglevel)
 	{
 		$out = array();
 		foreach ($output as $row) {
