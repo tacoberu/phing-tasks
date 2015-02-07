@@ -17,15 +17,15 @@ require_once 'phing/util/DataStore.php';
 require_once 'phing/system/io/FileWriter.php';
 
 /**
- * 
  * Append missing files from other directories.
- * 	<fs.merge level="verbose" method="append" outputProperty="msg">
+ *
+ * 	<taco.merge level="verbose" method="append" outputProperty="msg">
  * 		<fileset dir="${dir.repository}/persistence/">
  * 			<include name="s/mysql/1/update"/>
  * 			<include name="u/mysql/1/update"/>
  * 			<include name="t/mysql/1/update"/>
  * 		</fileset>
- * 	</fs.merge>
+ * 	</taco.merge>
  *
  * @package  phing.tasks.taco
  */
@@ -64,17 +64,17 @@ class FsMergeTask extends Task
 
 
 	protected $errorProperty;
-	
+
 	protected $haltOnFailure = False;
-	
+
 	protected $hasErrors = False;
-	
+
 	protected $badFiles = array();
-	
+
 	protected $logLevel = Project::MSG_VERBOSE;
-	
+
 	protected $method = Null;
-	
+
 
 
     /**
@@ -95,7 +95,7 @@ class FsMergeTask extends Task
 	 * The haltonfailure property
 	 * @param boolean $aValue
 	 */
-	public function setHaltOnFailure($aValue)
+	function setHaltOnFailure($aValue)
 	{
 		$this->haltOnFailure = $aValue;
 	}
@@ -104,21 +104,21 @@ class FsMergeTask extends Task
 
 	/**
 	 * Set an property name in which to put any errors.
-	 * @param string $propname 
+	 * @param string $propname
 	 */
-	public function setErrorproperty($propname)
+	function setErrorproperty($propname)
 	{
 		$this->errorProperty = $propname;
 	}
 
 
-	
+
 	/**
 	 * Whether to store last-modified times in cache
 	 *
 	 * @param PhingFile $file
 	 */
-	public function setMethod($method)
+	function setMethod($method)
 	{
 		$this->method = $method;
 	}
@@ -132,7 +132,7 @@ class FsMergeTask extends Task
      *
      * @return void
      */
-    public function setOutputProperty($prop)
+    function setOutputProperty($prop)
     {
         $this->outputProperty = $prop;
     }
@@ -144,12 +144,12 @@ class FsMergeTask extends Task
 	 *
 	 * @return FileSet The created fileset object
 	 */
-	public function createFileSet()
+	function createFileSet()
 	{
 		$num = array_push($this->filesets, new FileSet());
 		return $this->filesets[$num-1];
 	}
-   
+
 
 
     /**
@@ -165,12 +165,12 @@ class FsMergeTask extends Task
     }
 
 
-   
+
 	/**
 	 * Set level of log messages generated (default = info)
 	 * @param string $level
 	 */
-	public function setLevel($level)
+	function setLevel($level)
 	{
 		switch ($level) {
 			case "error": $this->logLevel = Project::MSG_ERR; break;
@@ -183,56 +183,61 @@ class FsMergeTask extends Task
 
 
 
-
-
 	/**
-	 * Execute lint check against PhingFile or a FileSet
+	 * Execute
 	 */
-	public function main()
+	function main()
 	{
 		if(!isset($this->file) and count($this->filesets) == 0) {
 			throw new BuildException("Missing either a nested fileset or attribute 'file' set");
 		}
 
 		$project = $this->getProject();
+		$acts = array();
 		foreach($this->filesets as $fs) {
 			$ds = $fs->getDirectoryScanner($project);
 			$dirs = $ds->getIncludedDirectories();
-			
+
 			$lists = array();
 			$base = $fs->getDir($this->project)->getPath();
 			foreach ($dirs as $dir) {
 				$lists[$dir] = $this->scan($base . DIRECTORY_SEPARATOR . $dir);
 			}
-			
-			//	Projít co kde chybí
-			$appended = array();
+
+			// Projít co kde chybí
 			foreach ($lists as $dirfrom => $files) {
 				foreach ($files as $file) {
 					foreach ($lists as $dirto => $list) {
 						if (!in_array($file, $list)) {
-							$this->copy($base . DIRECTORY_SEPARATOR . $dirfrom . DIRECTORY_SEPARATOR . $file,
-									$base . DIRECTORY_SEPARATOR . $dirto . DIRECTORY_SEPARATOR . $file
-									);
-							if (!isset($appended[$dirto])) {
-								$appended[$dirto] = array();
-							}
-							$appended[$dirto][] = $dirto . DIRECTORY_SEPARATOR . $file;
+							$acts[] = array($base, $dirfrom, $dirto, $file);
 						}
 					}
 				}
 			}
 		}
 
-        $outloglevel = $this->logOutput ? Project::MSG_INFO : Project::MSG_VERBOSE;				
-        $this->log('Merged files: ' . PHP_EOL . implode(PHP_EOL, $appended) . PHP_EOL, $outloglevel);
+		// Uplatnint změny
+		$logs = array();
+		foreach ($acts as $m) {
+			list($base, $dirfrom, $dirto, $file) = $m;
+			$this->copy($base . DIRECTORY_SEPARATOR . $dirfrom . DIRECTORY_SEPARATOR . $file,
+					$base . DIRECTORY_SEPARATOR . $dirto . DIRECTORY_SEPARATOR . $file
+					);
+			if (!isset($logs[$dirfrom])) {
+				$logs[$dirfrom] = array();
+			}
+			$logs[$dirfrom][] = $dirto . DIRECTORY_SEPARATOR . $file;
+		}
+
+
+        $outloglevel = $this->logOutput ? Project::MSG_INFO : Project::MSG_VERBOSE;
+        $this->log($this->formatOutput($logs), $outloglevel);
 
         if ($this->outputProperty) {
             $this->project->setProperty(
-                $this->outputProperty, $this->formatOutput($appended)
+                $this->outputProperty, $this->formatOutput($logs)
             );
         }
-
 	}
 
 
@@ -246,9 +251,9 @@ class FsMergeTask extends Task
 	{
 		$return = array();
 		foreach ($outs as $key => $files) {
-			$return[] = 'Merged to: [' . $key . '], files: [' . implode(', ', $files) . '].'; 
+			$return[] = '`' . $key . '\' -> files: [' . implode(', ', $files) . ']';
 		}
-		return implode(PHP_EOL . PHP_EOL, $return);
+		return 'Merged: ' . implode('; ', $return) . '.';
 	}
 
 
@@ -263,7 +268,7 @@ class FsMergeTask extends Task
 		if (!is_readable($path)) {
             $this->logError("Path " . $path . " is not readable.");
 			return;
-		}								
+		}
 
 		$newfiles = self::listDir($path);
 
@@ -319,6 +324,3 @@ class FsMergeTask extends Task
 
 
 }
-
-
-

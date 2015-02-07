@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<project name="phing-tasks" basedir="." default="build">
+
+	<property file="./build.properties" override="true"/>
+	<property name="dir.data" value="./data"/>
+
+	<taskdef file="${project.basedir}/vendor/tacoberu/phing-tasks/source/main/tasks/tasks.properties"
+			classpath="${project.basedir}/vendor/tacoberu/phing-tasks/source/main"
+			/>
+
+    <target name="build">
+		<!-- Zmerguje dva nebo více adresářů, aby tam kde chybí, se zkopírovali soubory z ostatních.
+			Rozlišuje název souboru.
+		  -->
+		<taco.merge level="verbose" method="append" outputProperty="msg">
+			<fileset dir="${dir.data}">
+				<include name="s"/>
+				<include name="u"/>
+				<include name="r"/>
+			</fileset>
+		</taco.merge>
+
+		<echo>${msg}</echo>
+    </target>
+
+
+</project>

@@ -78,7 +78,16 @@ Doc comming-soon.
 Doc comming-soon.
 
 ### taco.merge ###
-Doc comming-soon.
+Zmerguje dva nebo více adresářů, aby tam kde chybí, se zkopírovali soubory z ostatních.
+
+    <taco.merge level="verbose" method="append" outputProperty="msg">
+    	<fileset dir="${dir.data}">
+    		<include name="s"/>
+    		<include name="u"/>
+    		<include name="r"/>
+    	</fileset>
+    </taco.merge>
+
 
 ### taco.require ###
 Doc comming-soon.
