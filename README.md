@@ -174,16 +174,16 @@ Scan new gettext strings.
     </gettext-scan>
 
 ### gettext-merge ###
-Merge with original.
+Merge all *.po with original one.
 
-    <gettext-merge source="temp/message.po">
-    	<fileset dir="locales">
+    <gettext-merge file="locales/message.po">
+    	<fileset dir="temp">
     		<include name="**/*.po" />
     	</fileset>
     </gettext-merge>
 
 ### gettext-compile ###
-Compile to *.mo
+Compile all *.po files in locales folder to *.mo
 
     <gettext-compile>
     	<fileset dir="locales">

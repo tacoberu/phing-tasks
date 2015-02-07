@@ -20,9 +20,9 @@
 			</fileset>
 		</gettext-scan>
 
-		<!--	Sloučit s existujícími	-->
-		<gettext-merge source="temp/message.po">
-			<fileset dir="locales">
+		<!--	Sloučit s existujícím.	-->
+		<gettext-merge file="locales/message.po">
+			<fileset dir="temp">
 				<include name="**/*.po" />
 			</fileset>
 		</gettext-merge>
