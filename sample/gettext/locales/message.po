@@ -1,0 +1,12 @@
+# Gettext keys exported by GettextExtractor
+# Created: 2015-02-07T16:27:35+01:00
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Yes"
+msgstr "Oui"
+
+msgid "No"
+msgstr "Non"

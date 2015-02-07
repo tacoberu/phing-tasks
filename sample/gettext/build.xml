@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<project name="phing-tasks" basedir="." default="build">
+
+	<property file="./build.properties" override="true"/>
+	<property name="dir.source" value="./code"/>
+
+
+	<taskdef file="${project.basedir}/vendor/tacoberu/phing-tasks/source/main/tasks/tasks.properties"
+			classpath="${project.basedir}/vendor/tacoberu/phing-tasks/source/main"
+			/>
+
+
+    <target name="build" description="Překlad lokalizací.">
+
+		<!--	Vyhledat nové překlady	-->
+		<gettext-scan file="temp/message.po" language="fr_FR">
+			<fileset dir="${dir.source}">
+				<include name="**/*.php" />
+				<include name="**/*.phtml" />
+			</fileset>
+		</gettext-scan>
+
+		<!--	Sloučit s existujícími	-->
+		<gettext-merge source="temp/message.po">
+			<fileset dir="locales">
+				<include name="**/*.po" />
+			</fileset>
+		</gettext-merge>
+
+		<!--	Překlad do *.mo	-->
+		<gettext-compile>
+			<fileset dir="locales">
+				<include name="**/*.po" />
+			</fileset>
+		</gettext-compile>
+
+    </target>
+
+</project>

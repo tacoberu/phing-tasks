@@ -1,0 +1,30 @@
+{
+    "name": "tacoberu/phing-tasks-test",
+    "description": "Another my tasks for phing build system.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Martin Takáč",
+            "email": "martin@takac.name",
+            "homepage": "http://martin.takac.name"
+        }
+    ],
+    "repositories": [
+		{
+            "type": "vcs",
+            "url": "https://github.com/tacoberu/php-process.git"
+        },
+		{
+            "type": "vcs",
+            "url": "file://../../"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "tacoberu/php-process": "dev-master",
+        "tacoberu/phing-tasks": "dev-master"
+    },
+    "require-dev": {
+        "phing/phing": "dev-master"
+    }
+}

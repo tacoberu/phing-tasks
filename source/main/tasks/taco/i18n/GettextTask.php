@@ -96,7 +96,6 @@ class GettextTask extends MatchingTask
 
 
 
-
 	/**
 	 * Set is the name/location of where to create the tar file.
 	 * @param PhingFile $destFile The output of the tar

@@ -164,10 +164,26 @@ Throw exception if is in repository uncommitled changes.
 Tasky for internationalize. Parse a merge messages.
 
 ### gettext-scan ###
-Doc comming-soon.
+Scan new gettext strings.
+	<gettext-scan file="temp/message.po" language="fr_FR">
+		<fileset dir="${dir.source}">
+			<include name="**/*.php" />
+			<include name="**/*.phtml" />
+		</fileset>
+	</gettext-scan>
 
 ### gettext-merge ###
-Doc comming-soon.
+Merge with original.
+	<gettext-merge source="temp/message.po">
+		<fileset dir="locales">
+			<include name="**/*.po" />
+		</fileset>
+	</gettext-merge>
 
 ### gettext-compile ###
-Doc comming-soon.
+Compile to *.mo
+	<gettext-compile>
+		<fileset dir="locales">
+			<include name="**/*.po" />
+		</fileset>
+	</gettext-compile>

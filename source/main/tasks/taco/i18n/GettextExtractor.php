@@ -25,7 +25,6 @@ require_once __dir__ . '/filters/IFilter.php';
  *
  * @author	 Karel Klima
  * @author	 Martin Takáč
- * @package	Nette Extras
  */
 class GettextExtractor
 {

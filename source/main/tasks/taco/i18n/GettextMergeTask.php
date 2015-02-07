@@ -56,12 +56,19 @@ class GettextMergeTask extends MatchingTask
 	private $fileSetFiles = array();
 
 
+	/**
+	 * Whether to use PHP's passthru() function instead of exec()
+	 * @var boolean
+	 */
+	protected $passthru = false;
+
+
 
 	/**
 	 * Add a new fileset
 	 * @return FileSet
 	 */
-	public function createGettextFileSet()
+	function createGettextFileSet()
 	{
 		$this->fileset = new GettextFileSet();
 		$this->filesets[] = $this->fileset;
@@ -75,7 +82,7 @@ class GettextMergeTask extends MatchingTask
 	 * @return FileSet
 	 * @see createGettextFileSet()
 	 */
-	public function createFileSet()
+	function createFileSet()
 	{
 		return $this->createGettextFileSet();
 	}
@@ -87,7 +94,7 @@ class GettextMergeTask extends MatchingTask
 	 * Set is the name/location of where to create the tar file.
 	 * @param PhingFile $destFile The output of the tar
 	 */
-	public function setSource(PhingFile $m)
+	function setSource(PhingFile $m)
 	{
 		$this->file = $m;
 	}
@@ -97,7 +104,7 @@ class GettextMergeTask extends MatchingTask
 	/**
 	 * @param
 	 */
-	public function setLanguage($m)
+	function setLanguage($m)
 	{
 		$this->language = $m;
 	}
@@ -108,7 +115,7 @@ class GettextMergeTask extends MatchingTask
 	 * This is the base directory to look in for things to tar.
 	 * @param PhingFile $baseDir
 	 */
-	public function setBasedir(PhingFile $baseDir)
+	function setBasedir(PhingFile $baseDir)
 	{
 		$this->baseDir = $baseDir;
 	}
@@ -121,7 +128,7 @@ class GettextMergeTask extends MatchingTask
 	 * @return void
 	 * @access public
 	 */
-	public function setIncludeEmptyDirs($bool)
+	function setIncludeEmptyDirs($bool)
 	{
 		$this->includeEmpty = (boolean) $bool;
 	}
@@ -132,7 +139,7 @@ class GettextMergeTask extends MatchingTask
 	 * do the work
 	 * @throws BuildException
 	 */
-	public function main()
+	function main()
 	{
 		if ($this->file === null) {
 			throw new BuildException("po file must be set!", $this->getLocation());
@@ -146,13 +153,6 @@ class GettextMergeTask extends MatchingTask
 			throw new BuildException("Can not write to the specified po file!", $this->getLocation());
 		}
 
-//		if (!$file->getParentFile()->exists()) {
-//			if (!$file->getParentFile()->getParentFile()->exists()) {
-//				$file->getParentFile()->getParentFile()->mkdir();
-//			}
-//			$file->getParentFile()->mkdir();
-//		}
-
 		// shouldn't need to clone, since the entries in filesets
 		// themselves won't be modified -- only elements will be added
 		$savedFileSets = $this->filesets;
@@ -160,10 +160,12 @@ class GettextMergeTask extends MatchingTask
 		try {
 			if ($this->baseDir !== null) {
 				if (!$this->baseDir->exists()) {
-					throw new BuildException("basedir '" . (string) $this->baseDir . "' does not exist!", $this->getLocation());
+					throw new BuildException("Basedir '" . (string) $this->baseDir . "' does not exist!", $this->getLocation());
 				}
-				if (empty($this->filesets)) { // if there weren't any explicit filesets specivied, then
-											  // create a default, all-inclusive fileset using the specified basedir.
+
+				// if there weren't any explicit filesets specivied, then
+				// create a default, all-inclusive fileset using the specified basedir.
+				if (empty($this->filesets)) {
 					$mainFileSet = new GettextFileSet($this->fileset);
 					$mainFileSet->setDir($this->baseDir);
 					$this->filesets[] = $mainFileSet;
@@ -176,12 +178,12 @@ class GettextMergeTask extends MatchingTask
 										 $this->getLocation());
 			}
 
-			$this->log("Merge po gettext: " . $this->file->__toString(), Project::MSG_INFO);
+			$this->log("Merge po gettext: `{$this->file}'.", Project::MSG_INFO);
 
 			foreach ($this->filesets as $fs) {
 				$files = $fs->getFiles($this->project, $this->includeEmpty);
 				if (count($files) > 1 && strlen($fs->getFullpath()) > 0) {
-					throw new BuildException("fullpath attribute may only "
+					throw new BuildException("Fullpath attribute may only "
 											 . "be specified for "
 											 . "filesets that specify a "
 											 . "single file.");
@@ -189,8 +191,8 @@ class GettextMergeTask extends MatchingTask
 				$fsBasedir = $fs->getDir($this->project);
 				for ($i = 0, $fcount = count($files); $i < $fcount; $i++) {
 					$f = new PhingFile($fsBasedir, $files[$i]);
-					passthru('msgmerge -U --no-wrap ' . $f->getPath() . ' ' . $this->file->getPath());
-					$this->log("Merging file [" . $f->getPath() . '].', Project::MSG_VERBOSE);
+					list ($return, $output) = $this->executeCommand($f->getPath(), $this->file->getPath());
+					$this->log("Merging with file: `{$f->getPath()}'.", Project::MSG_VERBOSE);
 				}
 			}
 		}
@@ -202,6 +204,38 @@ class GettextMergeTask extends MatchingTask
 
 		$this->filesets = $savedFileSets;
 	}
+
+
+
+	/**
+	 * Executes the command and returns return code and output.
+	 *
+	 * @return array array(return code, array with output)
+	 */
+	private function executeCommand($to, $from)
+	{
+		$args = array();
+		$args[] = '-U';
+		$args[] = '--no-wrap';
+		$args[] = '-q';
+
+		$command = 'msgmerge ' . implode(' ', $args) . ' ' . $to . ' ' . $from;
+
+		$this->log("Executing command: `{$command}'.", Project::MSG_VERBOSE);
+
+		$output = array();
+		$return = null;
+
+		if ($this->passthru) {
+			passthru($command, $return);
+		}
+		else {
+			exec($command, $output, $return);
+		}
+
+		return array($return, $output);
+	}
+
 
 
 }
