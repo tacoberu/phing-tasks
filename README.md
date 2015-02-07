@@ -165,25 +165,28 @@ Tasky for internationalize. Parse a merge messages.
 
 ### gettext-scan ###
 Scan new gettext strings.
-	<gettext-scan file="temp/message.po" language="fr_FR">
-		<fileset dir="${dir.source}">
-			<include name="**/*.php" />
-			<include name="**/*.phtml" />
-		</fileset>
-	</gettext-scan>
+
+    <gettext-scan file="temp/message.po" language="fr_FR">
+    	<fileset dir="${dir.source}">
+    		<include name="**/*.php" />
+    		<include name="**/*.phtml" />
+    	</fileset>
+    </gettext-scan>
 
 ### gettext-merge ###
 Merge with original.
-	<gettext-merge source="temp/message.po">
-		<fileset dir="locales">
-			<include name="**/*.po" />
-		</fileset>
-	</gettext-merge>
+
+    <gettext-merge source="temp/message.po">
+    	<fileset dir="locales">
+    		<include name="**/*.po" />
+    	</fileset>
+    </gettext-merge>
 
 ### gettext-compile ###
 Compile to *.mo
-	<gettext-compile>
-		<fileset dir="locales">
-			<include name="**/*.po" />
-		</fileset>
-	</gettext-compile>
+
+    <gettext-compile>
+    	<fileset dir="locales">
+    		<include name="**/*.po" />
+    	</fileset>
+    </gettext-compile>
