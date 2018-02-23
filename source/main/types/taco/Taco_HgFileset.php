@@ -12,32 +12,21 @@
  * @author     Martin Takáč (martin@takac.name)
  */
 
-require_once "phing/Task.php";
-require_once __dir__ . '/HgBaseTask.php';
-
-
-
-use Taco\Utils\Process;
-
 
 /**
- * Update mercurial repository to last revision, or last revision of branch.
- *
- * @sample
- * hg status
- *
- * <hg.status repository="." output="true" />
- *
  * @package phing.tasks.taco
  */
-class HgStatusTask extends HgBaseTask
+class Taco_HgFileset extends FileSet
 {
 
 	/**
-	 * Action to execute: status, update, install
-	 * @var string
+	 * @param string
 	 */
-	protected $action = 'status';
-
+	function setFiles($files)
+	{
+		foreach (explode(',', $files) as $x) {
+			$this->createInclude()->setName(trim($x));
+		}
+	}
 
 }

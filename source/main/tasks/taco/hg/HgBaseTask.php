@@ -27,7 +27,7 @@ use Taco\Utils\Process;
  *
  * @package phing.tasks.taco
  */
-abstract class HgBaseTask extends Task
+abstract class Taco_HgBaseTask extends Task
 {
 
 	/**
@@ -279,7 +279,7 @@ abstract class HgBaseTask extends Task
 		}
 
 		$outloglevel = $this->output ? Project::MSG_VERBOSE : Project::MSG_INFO;
-		
+
 		if ($this->outputProperty) {
 			$this->project->setProperty($this->outputProperty, $this->formatOutput($status->content, $outloglevel));
 		}

@@ -12,10 +12,7 @@
  * @author     Martin Takáč (martin@takac.name)
  */
 
-require_once "phing/Task.php";
 require_once __dir__ . '/HgBaseTask.php';
-
-
 
 use Taco\Utils\Process;
 
@@ -34,7 +31,7 @@ use Taco\Utils\Process;
  *
  * @package phing.tasks.taco
  */
-class HgPushTask extends HgBaseTask
+class Taco_HgPushTask extends Taco_HgBaseTask
 {
 
 	/**
@@ -91,7 +88,7 @@ class HgPushTask extends HgBaseTask
 	/**
 	 * @param Process\ExecException $e
 	 * @throw BuildException if code != 0
-	 * @return object {code, content} 
+	 * @return object {code, content}
 	 */
 	protected function catchException(Process\ExecException $e)
 	{

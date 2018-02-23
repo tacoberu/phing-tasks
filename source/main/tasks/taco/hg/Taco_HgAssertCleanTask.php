@@ -12,8 +12,7 @@
  * @author     Martin Takáč (martin@takac.name)
  */
 
-require_once "phing/Task.php";
-require_once __dir__ . '/HgStatusTask.php';
+require_once __dir__ . '/Taco_HgStatusTask.php';
 
 
 /**
@@ -26,7 +25,7 @@ require_once __dir__ . '/HgStatusTask.php';
  *  @author   Martin Takáč <martin@takac.name>
  *  @package  phing.tasks.taco
  */
-class HgAssertCleanTask extends HgStatusTask
+class Taco_HgAssertCleanTask extends Taco_HgStatusTask
 {
 
 	/**

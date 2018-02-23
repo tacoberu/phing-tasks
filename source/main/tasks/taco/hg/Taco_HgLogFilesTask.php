@@ -18,38 +18,54 @@ require_once __dir__ . '/HgBaseTask.php';
 
 
 /**
- * HgLogLastrevTask
+ * HgLogFilesTask
  *
- * <hg.log.lastrev format="id" repository="${dir.source.repository}" property="rev-actual" branch="default" />
- *
- * Loads last revision of mercurial repozitory.
- * Supports filterchains.
+ * Loads a (text) filenames between two revision of hg.
+ * /usr/bin/hg diff --stat -r 6006:7086
  *
  * @package phing.tasks.taco
  */
-class HgLogLastrevTask extends HgBaseTask
+class Taco_HgLogFilesTask extends Taco_HgBaseTask
 {
 
 	/**
 	 * Action to execute: status, update, install
 	 * @var string
 	 */
-	protected $action = 'log';
+	protected $action = 'diff';
 
 
 	/**
 	 * Revision of begin.
 	 */
-	private $format;
+	private $revFrom;
 
 
 	/**
-	 * @var string
+	 * Revision of end.
 	 */
-	protected $branch;
+	private $revTo;
 
 
-	
+	/**
+	 * filter to be set
+	 * @var string $filter
+	 */
+	private $filter;
+
+
+
+	/**
+	 * Default options for ...
+	 *
+	 * @var array
+	 */
+	protected $options = array(
+			'stat' => Null,
+			);
+
+
+
 	/**
 	 * Array of FilterChain objects
 	 * @var FilterChain[]
@@ -58,27 +74,34 @@ class HgLogLastrevTask extends HgBaseTask
 
 
 
-
-
 	/**
-	 * The setter for the attribute "branch"
-	 */
-	public function setBranch($str)
-	{
-		$this->branch = $str;
-		return $this;
-	}
-
-
-
-	/**
+	 * Set filter of files - regular expresion.
+	 *
+	 * @param string $filter
 	 * @return this
 	 */
-	public function setFormat($value)
+	public function setFilter($filter)
 	{
-		$this->format = $value;
+		$this->filter = $filter;
 		return $this;
 	}
+
+
+
+	/**
+	 * Set file to read
+	 * @param PhingFile $file
+	 * @return this
+	 */
+	public function setRevFrom($value)
+	{
+		$this->revFrom = strtr(trim($value), array(
+				PHP_EOL => '',
+				));
+
+		return $this;
+	}
+
 
 
 
@@ -86,12 +109,25 @@ class HgLogLastrevTask extends HgBaseTask
 	 * Creates a filterchain
 	 *
 	 * @return  object  The created filterchain object
-	 * @TODO
 	 */
 	function createFilterChain()
 	{
 		$num = array_push($this->filterChains, new FilterChain($this->project));
 		return $this->filterChains[$num-1];
+	}
+
+
+
+	/**
+	 * @throw BuildException that not requred params.
+	 */
+	protected function assertRequiredParams()
+	{
+		parent::assertRequiredParams();
+
+		if (empty($this->revFrom)) {
+			throw new BuildException("revFrom: '" . (int) $this->revFrom . "' is not a valid value.");
+		}
 	}
 
 
@@ -103,17 +139,13 @@ class HgLogLastrevTask extends HgBaseTask
 	 */
 	protected function buildExecute()
 	{
-		if (isset($this->branch)) {
-			$this->action = 'log';
-			$this->options['l'] = '1';
-			$this->options['b'] = $this->branch;
+		$r = $this->revFrom;
+		if ($this->revTo) {
+			$r .= ' -r ' . $this->revTo;
 		}
-		else {
-			$this->action = 'tip';
-		}
-		
-		$exec = parent::buildExecute();
-		return $exec;
+		$this->options['r'] = $r;
+
+		return parent::buildExecute();
 	}
 
 
@@ -127,19 +159,20 @@ class HgLogLastrevTask extends HgBaseTask
 	 */
 	protected function formatOutput(array $output)
 	{
-		$mask = array();
+		unset($output[count($output) - 1]);
+
+		$ret = array();
 		foreach ($output as $row) {
-			$row = explode(':', $row, 2);
-			if (count($row) == 2) {
-				$mask[$row[0]] = trim($row[1]);
+#			$row = preg_replace('~|.*$~', '', trim($row));
+			if (preg_match('~([^| ]+)|~', trim($row), $matches) && !empty($matches[0])) {
+				if (preg_match('~' . $this->filter . '~', $matches[0], $out)) {
+					$ret[] = $out[0];
+				}
 			}
 		}
-		$tmp = explode(':', $mask['changeset'], 2);
-		$mask['id'] = $tmp[0];
-		$mask['changeset'] = $tmp[1];
-		return strtr($this->format, $mask);
-	}
 
+		return implode(',', $ret);
+	}
 
 
 

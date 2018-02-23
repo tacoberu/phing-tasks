@@ -12,27 +12,24 @@
  * @author     Martin Takáč (martin@takac.name)
  */
 
-require_once "phing/Task.php";
 require_once __dir__ . '/HgBaseTask.php';
 
 
-
 /**
- * HgBrancheTask
+ * HgTagTask
  *
- * Loads a (text) names of branches between two revision of hg.
+ * Loads a (text) names of tags between two revision of hg.
  *
  * @package phing.tasks.taco
  */
-class HgBrancheTask extends HgBaseTask
+class Taco_HgTagTask extends Taco_HgBaseTask
 {
-
 
 	/**
 	 * Action to execute: status, update, install
 	 * @var string
 	 */
-	protected $action = 'branches';
+	protected $action = 'tags';
 
 
 	/**
@@ -48,6 +45,18 @@ class HgBrancheTask extends HgBaseTask
 
 
 	/**
+	 * Počet záznamů.
+	 */
+	private $limit = Null;
+
+
+	/**
+	 * Posunutí.
+	 */
+	private $offset = 0;
+
+
+	/**
 	 * Formát výstupu. name, id, changset
 	 */
 	private $format = '%name%';
@@ -59,15 +68,53 @@ class HgBrancheTask extends HgBaseTask
 	private $separator = ',';
 
 
+	/**
+	 * Vyfiltrovat nějaké tagy.
+	 */
+	private $filter;
+
 
 	/**
-	 * Set file to read
-	 * @param PhingFile $file
+	 * Které tagy vyhazujem.
+	 */
+	private $exclude = array(
+			'tip'
+			);
+
+
+	/**
+	 * Set repository directory
+	 *
+	 * @param string $repository Repo directory
+	 * @return this
+	 */
+	public function setRepository(PhingFile $repository)
+	{
+		$this->repository = $repository;
+		return $this;
+	}
+
+
+
+	/**
+	 * Set ...
 	 * @return this
 	 */
 	public function setRevFrom($value)
 	{
 		$this->revFrom = (int)$value;
+		return $this;
+	}
+
+
+
+	/**
+	 * Set filter of name tag.
+	 * @return this
+	 */
+	public function setFilter($value)
+	{
+		$this->filter = $value;
 		return $this;
 	}
 
@@ -119,6 +166,33 @@ class HgBrancheTask extends HgBaseTask
 
 
 	/**
+	 * Kolik tagů nás zajímá.
+	 *
+	 * @param string
+	 * @return this
+	 */
+	public function setLimit($value)
+	{
+		$this->limit = $value;
+		return $this;
+	}
+
+
+
+	/**
+	 * -b default
+	 *
+	 * @param string
+	 * @return this
+	 */
+	public function setBranch($value)
+	{
+		$this->options['b'] = $value;
+		return $this;
+	}
+
+
+	/**
 	 * Zpracovat výstup. Rozprazsuje řádek, vyfiltruje jej zda je větší jak revize a naformátuje jej do výstupu.
 	 *
 	 * @param array of string Položky branch + id:hash
@@ -128,25 +202,38 @@ class HgBrancheTask extends HgBaseTask
 	protected function formatOutput(array $output)
 	{
 		$ret = array();
-		$this->log('Filter for: ' . $this->revFrom, Project::MSG_VERBOSE);
 		foreach ($output as $row) {
 			if (preg_match('~([^\s]+)\s+(\d+)\:([\d\w]+)~', $row, $matches)) {
-				if ($matches[2] >= $this->revFrom) {
-					//	Mapování
-					$mask = array();
-					$mask['%id%'] = $matches[2];
-					$mask['%name%'] = $matches[1];
-					$mask['%changeset%'] = $matches[3];
+				if ($this->revFrom && $matches[2] < $this->revFrom) {
+					$this->log("skip by rev-from: $row ({$matches[2]}) < {$this->revFrom}", Project::MSG_DEBUG);
+					continue;
+				}
 
-					//	přiřazení
-					$this->log('add:  ' . $row, Project::MSG_VERBOSE);
-					$ret[] = strtr($this->format, $mask);
+				if ($this->filter && ! preg_match('~^' . $this->filter . '$~i', $matches[1])) {
+					$this->log("skip by filter: `{$matches[1]}` != `{$this->filter}`.", Project::MSG_DEBUG);
+					continue;
 				}
-				else {
-					$this->log('skip: ' . $row, Project::MSG_VERBOSE);
+
+				if (in_array($matches[1], $this->exclude)) {
+					$this->log("discard: $row", Project::MSG_DEBUG);
+					continue;
 				}
+
+				//	Mapování
+				$mask = array();
+				$mask['%id%'] = $matches[2];
+				$mask['%name%'] = $matches[1];
+				$mask['%changeset%'] = $matches[3];
+
+				//	přiřazení
+				$this->log('add:  ' . $row, Project::MSG_VERBOSE);
+				$ret[] = strtr($this->format, $mask);
 			}
 		}
+
+		//	Vyříznout jen určitý počet
+		$ret = array_slice($ret, $this->offset, $this->limit);
+
 		return implode($this->separator, $ret);
 	}
 

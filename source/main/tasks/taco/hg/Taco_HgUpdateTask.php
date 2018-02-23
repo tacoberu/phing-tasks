@@ -12,7 +12,6 @@
  * @author     Martin Takáč (martin@takac.name)
  */
 
-require_once "phing/Task.php";
 require_once __dir__ . '/HgBaseTask.php';
 
 
@@ -30,7 +29,7 @@ use Taco\Utils\Process;
  *
  * @package phing.tasks.taco
  */
-class HgUpdateTask extends HgBaseTask
+class Taco_HgUpdateTask extends Taco_HgBaseTask
 {
 
 	/**

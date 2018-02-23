@@ -21,7 +21,7 @@ require_once "phing/Task.php";
  *
  * @package phing.tasks.taco
  */
-class HgTagLastTask extends Task
+class Taco_HgTagLastTask extends Task
 {
 
 	/**
@@ -49,7 +49,7 @@ class HgTagLastTask extends Task
 	private $property;
 
 
-	
+
 	/**
 	 * Array of FilterChain objects
 	 * @var FilterChain[]
@@ -167,7 +167,7 @@ class HgTagLastTask extends Task
 	{
 		$output = array();
 		$return = null;
-		
+
 		if ($this->passthru) {
 			passthru($this->command, $return);
 		}
