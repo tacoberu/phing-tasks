@@ -15,6 +15,9 @@
 require_once __dir__ . '/HgBaseTask.php';
 
 
+use Taco\Utils\Process;
+
+
 /**
  * @sample
  * hg out
@@ -58,6 +61,41 @@ class Taco_HgLogOutTask extends Taco_HgBaseTask
 
 
 	/**
+	 * Executes the command and returns return code and output.
+	 *
+	 * @return array array(return code, array with output)
+	 */
+	protected function executeCommand()
+	{
+		$exec = $this->buildExecute()
+			->setWorkDirectory($this->repository->getPath());
+		$exec = $this->issetArguments($exec);
+
+		$this->log($exec->dryRun(), Project::MSG_VERBOSE);
+
+		try {
+			return $exec->run();
+
+			return (object) [
+				'code' => 0,
+				'content' => [],
+			];
+
+		}
+		catch (Process\ExecException $e) {
+			if ($e->getCode() === 1 && substr($e->getMessage(), -16) === 'no changes found') {
+				return (object) [
+					'code' => 0,
+					'content' => [],
+				];
+			}
+			$status = $this->catchException($e);
+		}
+	}
+
+
+
+	/**
 	 * Zpracovat výstup. Rozprazsuje řádek, vyfiltruje jej zda je větší jak revize a naformátuje jej do výstupu.
 	 *
 	 * @param array of string Položky branch + id:hash
@@ -71,6 +109,10 @@ class Taco_HgLogOutTask extends Taco_HgBaseTask
 			if ($row{0} === '-') {
 				$xs[] = trim($row, ' -');
 			}
+		}
+
+		if (empty($xs)) {
+			return null;
 		}
 
 		switch ($this->format) {
