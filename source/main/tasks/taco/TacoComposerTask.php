@@ -64,6 +64,12 @@ class TacoComposerTask extends Task
     protected $logOutput = false;
 
 
+    /**
+     * @var boolean
+     */
+    protected $quiet = false;
+
+
 
     /**
      * Logging level for status messages
@@ -95,6 +101,13 @@ class TacoComposerTask extends Task
 	public function setBin($str)
 	{
 		$this->composer = $str;
+	}
+
+
+
+	public function setQuiet($bool)
+	{
+		$this->quiet = (bool) $bool;
 	}
 
 
@@ -239,6 +252,9 @@ class TacoComposerTask extends Task
 			'-n',
 			);
 
+		if ($this->quiet) {
+			$params[] = '-q';
+		}
 #		foreach ($this->getParams() as $name => $value) {
 #			$params[] = '--' . $name . ' ' . $value;
 #		}
