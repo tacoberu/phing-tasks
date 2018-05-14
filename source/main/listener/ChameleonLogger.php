@@ -20,6 +20,7 @@ require_once 'phing/system/util/Timer.php';
 
 /**
  * Umožní logovat do více výstupů.
+ * Defaultní vypisuje na výstup v ansi formátu. A je-li nastaven html.log, tak vypisuje s jinou úrovní podrobností do html.
  *
  * @author Martin Takáč <martin@takac.name>
  * @package phing.taco.listener
@@ -38,17 +39,13 @@ class ChameleonLogger implements BuildLogger
 	 *  -Dchameleon.html.log=<soubor s logem>
 	 *  -Dchameleon.html.error=<soubor s chybovkama>
 	 */
-	public function __construct($a)
+	function __construct($a)
 	{
 		if (Phing::getDefinedProperty('chameleon.html.log') || Phing::getDefinedProperty('chameleon.html.error')) {
 			$this->loggers['html'] = new HtmlColorLogger();
 		}
 		$this->loggers['ansi'] = new AnsiColorLogger();
 	}
-
-
-
-	// abstract method of BuildLogger
 
 
 
@@ -74,17 +71,17 @@ class ChameleonLogger implements BuildLogger
 	 * @param int $level The logging level for the logger.
 	 * @see BuildLogger#setMessageOutputLevel()
 	 */
-	public function setMessageOutputLevel($level)
+	function setMessageOutputLevel($level)
 	{
-		foreach ($this->loggers as $name => $loggers) {
+		foreach ($this->loggers as $name => $logger) {
 			switch ($name) {
 				case 'html':
 					if ($value = Phing::getDefinedProperty('chameleon.html.level')) {
-						$loggers->setMessageOutputLevel($value);
-						break; // Pokud není nastaven, ať převezme volbu z -verbose | -debug
+						$logger->setMessageOutputLevel($value);
 					}
+					break; // Pokud není nastaven, ať převezme volbu z -verbose | -debug
 				default:
-					$loggers->setMessageOutputLevel($level);
+					$logger->setMessageOutputLevel($level);
 			}
 		}
 	}
@@ -97,16 +94,22 @@ class ChameleonLogger implements BuildLogger
 	 * @param OutputStream $output
 	 * @see BuildLogger#setOutputStream()
 	 */
-	public function setOutputStream(OutputStream $output)
+	function setOutputStream(OutputStream $output)
 	{
-		foreach ($this->loggers as $name => $loggers) {
+		foreach ($this->loggers as $name => $logger) {
 			switch ($name) {
 				case 'html':
-					$filename = Phing::getDefinedProperty('chameleon.html.log');
-					$loggers->setOutputStream(new OutputStream(fopen($filename, "w")));
+					if ($filename = Phing::getDefinedProperty('chameleon.html.log')) {
+						$out = new OutputStream(fopen($filename, "w"));
+					}
+					else {
+						// Pokud není nastaven, tak zahazujeme.
+						$out = new OutputStreamNull();
+					}
+					$logger->setOutputStream($out);
 					break;
 				default:
-					$loggers->setOutputStream($output);
+					$logger->setOutputStream($output);
 			}
 		}
 	}
@@ -119,17 +122,22 @@ class ChameleonLogger implements BuildLogger
 	 * @param OutputStream $err
 	 * @see BuildLogger#setErrorStream()
 	 */
-	public function setErrorStream(OutputStream $output)
+	function setErrorStream(OutputStream $output)
 	{
-		foreach ($this->loggers as $name => $loggers) {
+		foreach ($this->loggers as $name => $logger) {
 			switch ($name) {
 				case 'html':
 					if ($filename = Phing::getDefinedProperty('chameleon.html.error')) {
-						$loggers->setErrorStream(new OutputStream(fopen($filename, "w")));
+						$out = new OutputStream(fopen($filename, "w"));
 					}
-					break; // Pokud není nastaven, tak zahazujeme.
+					else {
+						// Pokud není nastaven, tak zahazujeme.
+						$out = new OutputStreamNull();
+					}
+					$logger->setErrorStream($out);
+					break;
 				default:
-					$loggers->setErrorStream($output);
+					$logger->setErrorStream($output);
 			}
 		}
 	}
@@ -140,13 +148,12 @@ class ChameleonLogger implements BuildLogger
 	 *  Sets the start-time when the build started. Used for calculating
 	 *  the build-time.
 	 *
-	 *  @param  object  The BuildEvent
-	 *  @access public
+	 *  @param BuildEvent The BuildEvent
 	 */
-	public function buildStarted(BuildEvent $event)
+	function buildStarted(BuildEvent $event)
 	{
-		foreach ($this->loggers as $loggers) {
-			$loggers->buildStarted($event);
+		foreach ($this->loggers as $logger) {
+			$logger->buildStarted($event);
 		}
 	}
 
@@ -156,13 +163,13 @@ class ChameleonLogger implements BuildLogger
 	 *  Prints whether the build succeeded or failed, and any errors that
 	 *  occured during the build. Also outputs the total build-time.
 	 *
-	 *  @param  object  The BuildEvent
+	 *  @param  BuildEvent  The BuildEvent
 	 *  @see    BuildEvent::getException()
 	 */
-	public function buildFinished(BuildEvent $event)
+	function buildFinished(BuildEvent $event)
 	{
-		foreach ($this->loggers as $loggers) {
-			$loggers->buildFinished($event);
+		foreach ($this->loggers as $logger) {
+			$logger->buildFinished($event);
 		}
 	}
 
@@ -172,13 +179,12 @@ class ChameleonLogger implements BuildLogger
 	 *  Prints the current target name
 	 *
 	 *  @param  object  The BuildEvent
-	 *  @access public
 	 *  @see    BuildEvent::getTarget()
 	 */
-	public function targetStarted(BuildEvent $event)
+	function targetStarted(BuildEvent $event)
 	{
-		foreach ($this->loggers as $loggers) {
-			$loggers->targetStarted($event);
+		foreach ($this->loggers as $logger) {
+			$logger->targetStarted($event);
 		}
 	}
 
@@ -193,8 +199,8 @@ class ChameleonLogger implements BuildLogger
 	 */
 	public function targetFinished(BuildEvent $event)
 	{
-		foreach ($this->loggers as $loggers) {
-			$loggers->targetFinished($event);
+		foreach ($this->loggers as $logger) {
+			$logger->targetFinished($event);
 		}
 	}
 
@@ -210,8 +216,8 @@ class ChameleonLogger implements BuildLogger
 	 */
 	public function taskStarted(BuildEvent $event)
 	{
-		foreach ($this->loggers as $loggers) {
-			$loggers->taskStarted($event);
+		foreach ($this->loggers as $logger) {
+			$logger->taskStarted($event);
 		}
 	}
 
@@ -227,8 +233,8 @@ class ChameleonLogger implements BuildLogger
 	 */
 	public function taskFinished(BuildEvent $event)
 	{
-		foreach ($this->loggers as $loggers) {
-			$loggers->taskFinished($event);
+		foreach ($this->loggers as $logger) {
+			$logger->taskFinished($event);
 		}
 	}
 
@@ -248,5 +254,36 @@ class ChameleonLogger implements BuildLogger
 		}
    }
 
+
+}
+
+
+
+class OutputStreamNull extends OutputStream
+{
+
+	function __construct()
+	{}
+
+
+
+	function write($buf, $off = null, $len = null)
+	{}
+
+
+
+	function flush()
+	{}
+
+
+
+	/**
+	 * Returns a string representation of the attached PHP stream.
+	 * @return string
+	 */
+	function __toString()
+	{
+		return '<<null-output>>';
+	}
 
 }
