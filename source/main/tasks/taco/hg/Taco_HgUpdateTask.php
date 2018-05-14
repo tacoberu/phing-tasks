@@ -25,7 +25,7 @@ use Taco\Utils\Process;
  * @sample
  * hg update default
  *
- * <hg.update repository="." output="true" branch="default" />
+ * <taco.hg.update repository="." output="true" branch="default" />
  *
  * @package phing.tasks.taco
  */
