@@ -15,6 +15,8 @@
 require_once 'phing/Task.php';
 require_once "phing/types/Commandline.php";
 
+use Taco\Utils\Process;
+
 
 /**
  * Composer Task
@@ -25,12 +27,18 @@ require_once "phing/types/Commandline.php";
 class TacoComposerTask extends Task
 {
 
+	/**
+	 * Commandline managing object
+	 *
+	 * @var Commandline
+	 */
+	private $commandline;
+
 
 	/**
 	 * @var string the path to php interperter
 	 */
 	private $composer = '/usr/bin/env composer';
-
 
 
 	/**
@@ -40,7 +48,6 @@ class TacoComposerTask extends Task
 	private $action = null;
 
 
-
 	/**
 	 * Working directory.
 	 * @var PhingFile
@@ -48,34 +55,37 @@ class TacoComposerTask extends Task
 	protected $dir;
 
 
-
-    /**
-     * Whether to use PHP's passthru() function instead of exec()
-     * @var boolean
-     */
-    protected $passthru = false;
-
+	/**
+	 * Whether to use PHP's passthru() function instead of exec()
+	 * @var boolean
+	 */
+	protected $passthru = false;
 
 
-    /**
-     * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
-     * @var boolean
-     */
-    protected $logOutput = false;
+	/**
+	 * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
+	 * @var boolean
+	 */
+	protected $logOutput = false;
 
 
-    /**
-     * @var boolean
-     */
-    protected $quiet = false;
+	/**
+	 * @var boolean
+	 */
+	protected $quiet = false;
 
 
+	/**
+	 * Logging level for status messages
+	 * @var integer
+	 */
+	protected $logLevel = Project::MSG_INFO;
 
-    /**
-     * Logging level for status messages
-     * @var integer
-     */
-    protected $logLevel = Project::MSG_INFO;
+
+	function __construct()
+	{
+		$this->commandline = new Commandline();
+	}
 
 
 
@@ -83,7 +93,7 @@ class TacoComposerTask extends Task
 	 * The init method: Do init steps.
 	 * Možnost globálně změnit chování pomocí build.properties
 	 */
-	public function init()
+	function init()
 	{
 		if ($bin = $this->getProject()->getProperty($this->getTaskName() . '.bin')) {
 			$this->setBin($bin);
@@ -98,65 +108,65 @@ class TacoComposerTask extends Task
 	/**
 	 * The setter for the attribute "bin"
 	 */
-	public function setBin($str)
+	function setBin($str)
 	{
 		$this->composer = $str;
 	}
 
 
 
-	public function setQuiet($bool)
+	function setQuiet($bool)
 	{
 		$this->quiet = (bool) $bool;
 	}
 
 
 
-    /**
-     * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
-     *
-     * @param boolean $logOutput If output shall be logged visibly
-     *
-     * @return void
-     */
-    public function setLogoutput($logOutput)
-    {
-        $this->logOutput = (bool) $logOutput;
-    }
+	/**
+	 * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
+	 *
+	 * @param boolean $logOutput If output shall be logged visibly
+	 *
+	 * @return void
+	 */
+	function setLogoutput($logOutput)
+	{
+		$this->logOutput = (bool) $logOutput;
+	}
 
 
 
-    /**
-     * Set level of log messages generated (default = verbose)
-     *
-     * @param string $level Log level
-     *
-     * @return void
-     */
-    public function setLevel($level)
-    {
-        switch ($level) {
-        case 'error':
-            $this->logLevel = Project::MSG_ERR;
-            break;
-        case 'warning':
-            $this->logLevel = Project::MSG_WARN;
-            break;
-        case 'info':
-            $this->logLevel = Project::MSG_INFO;
-            break;
-        case 'verbose':
-            $this->logLevel = Project::MSG_VERBOSE;
-            break;
-        case 'debug':
-            $this->logLevel = Project::MSG_DEBUG;
-            break;
-        default:
-            throw new BuildException(
-                sprintf('Unknown log level "%s"', $level)
-            );
-        }
-    }
+	/**
+	 * Set level of log messages generated (default = verbose)
+	 *
+	 * @param string $level Log level
+	 *
+	 * @return void
+	 */
+	function setLevel($level)
+	{
+		switch ($level) {
+		case 'error':
+			$this->logLevel = Project::MSG_ERR;
+			break;
+		case 'warning':
+			$this->logLevel = Project::MSG_WARN;
+			break;
+		case 'info':
+			$this->logLevel = Project::MSG_INFO;
+			break;
+		case 'verbose':
+			$this->logLevel = Project::MSG_VERBOSE;
+			break;
+		case 'debug':
+			$this->logLevel = Project::MSG_DEBUG;
+			break;
+		default:
+			throw new BuildException(
+				sprintf('Unknown log level "%s"', $level)
+			);
+		}
+	}
 
 
 
@@ -170,38 +180,14 @@ class TacoComposerTask extends Task
 	}
 
 
-	/**
-	 * Specify the working directory for executing this command.
-	 */
-	function getDir()
-	{
-		if (empty($this->dir)) {
-			$this->dir = $this->project->getBasedir();
-		}
-		return $this->dir;
-	}
-
-
-
 
 	/**
 	 * sets the Composer command to execute
 	 * @param string $command
 	 */
-	public function setCommand($command)
+	function setCommand($command)
 	{
 		$this->action = $command;
-	}
-
-
-
-	/**
-	 * returns the path to Composer application
-	 * @return string
-	 */
-	public function getComposer()
-	{
-		return $this->composer;
 	}
 
 
@@ -211,9 +197,9 @@ class TacoComposerTask extends Task
 	 *
 	 * @return Arg Argument object
 	 */
-	public function createArg()
+	function createArg()
 	{
-		return $this->commandLine->createArgument();
+		return $this->commandline->createArgument();
 	}
 
 
@@ -221,55 +207,47 @@ class TacoComposerTask extends Task
 	/**
 	 * executes the Composer task
 	 */
-	public function main()
+	function main()
 	{
-		$this->prepare();
 		list($return, $output) = $this->executeCommand();
-		$this->cleanup($return, $output);
+		if ($return != 0 && $this->checkreturn) {
+			throw new BuildException("Task exited with code [$return]\nOutput: " . implode(PHP_EOL, $output) . PHP_EOL);
+		}
+
+		$outloglevel = $this->logOutput ? Project::MSG_INFO : Project::MSG_VERBOSE;
+		foreach ($output as $line) {
+			$this->log($line, $outloglevel);
+		}
+
+		if ($this->returnProperty) {
+			$this->project->setProperty($this->returnProperty, $return);
+		}
+
+		if ($this->outputProperty) {
+			$this->project->setProperty(
+				$this->outputProperty, implode(PHP_EOL, $output)
+			);
+		}
 	}
 
 
 
-
 	/**
-	 * Prepares the command building and execution, i.e.
-	 * changes to the specified directory.
+	 * Specify the working directory for executing this command.
 	 *
-	 * @return void
+	 * @return string
 	 */
-	protected function prepare()
+	private function requireWorkDirectory()
 	{
-		if (empty($this->action)) {
-			throw new \LogicException("Not set action.");
+		if (empty($this->dir)) {
+			$this->dir = $this->project->getBasedir();
 		}
-
-		if (!$this->getDir()->getCanonicalFile()->isDirectory()) {
-			throw new BuildException("'" . (string) $this->dir . "' is not a valid directory.");
-		}
-
-		$params = array(
-			'--no-ansi',
-			'-n',
+		if (!$this->dir->getCanonicalFile()->isDirectory()) {
+			throw new BuildException(
+				"'" . (string) $this->dir . "' is not a valid directory"
 			);
-
-		if ($this->quiet) {
-			$params[] = '-q';
 		}
-#		foreach ($this->getParams() as $name => $value) {
-#			$params[] = '--' . $name . ' ' . $value;
-#		}
-
-		$this->currdir = getcwd();
-		@chdir($this->dir->getPath());
-
-		if (count($params)) {
-			$params = ' ' . implode(' ', $params);
-		}
-		else {
-			$params = Null;
-		}
-
-		$this->command = $this->composer . ' ' . $this->action . $params;
+		return $this->dir->getPath();
 	}
 
 
@@ -279,78 +257,31 @@ class TacoComposerTask extends Task
 	 *
 	 * @return array array(return code, array with output)
 	 */
-	protected function executeCommand()
+	private function executeCommand()
 	{
-		$output = array();
-		$return = null;
-
-		if ($this->passthru) {
-			passthru($this->command, $return);
+		if (empty($this->composer)) {
+			throw new BuildException('ExecTask: Please provide "bin"');
 		}
-		else {
-			exec($this->command, $output, $return);
+		if (empty($this->action)) {
+			throw new BuildException('ExecTask: Please provide "command"');
 		}
+		$this->commandline->setExecutable((string)$this->composer);
 
-		//	schema-manage vrací špatné návratové hodnoty.
-		if (strpos(implode('', $output), '[Error]') !== False) {
-			$return = 1;
+		$exec = new Process\Exec($this->commandline->getExecutable());
+		$exec->arg($this->action);
+		foreach ($this->commandline->getArguments() as $x) {
+			$exec->arg($x);
 		}
-		$this->log('Executing command: [' . $this->command . '], in workdir: ['
-				. $this->dir->getPath() . '], with returning code: '
-				. $return,
-				Project::MSG_VERBOSE);
+		$exec->setWorkDirectory($this->requireWorkDirectory());
 
-		return array($return, $output);
-	}
-
-
-
-	/**
-	 * Runs all tasks after command execution:
-	 * - change working directory back
-	 * - log output
-	 * - verify return value
-	 *
-	 * @param integer $return Return code
-	 * @param array   $output Array with command output
-	 *
-	 * @return void
-	 */
-	protected function cleanup($return, $output)
-	{
-		if ($this->dir !== null) {
-			@chdir($this->currdir);
+		$this->log("Executing command: " . $exec->dryRun(), $this->logLevel);
+		try {
+			$state = $exec->run();
+			return array($state->code, $state->content);
 		}
-
-		$outloglevel = $this->logOutput ? Project::MSG_VERBOSE : Project::MSG_INFO;
-		$out = $this->formatOutputProperty($output, $outloglevel);
-		if ($out) {
-			$this->log($out, $this->logLevel);
-		}
-
-		//~ if ($this->returnProperty) {
-			//~ $this->project->setProperty($this->returnProperty, $return);
-		//~ }
-//~
-		//~ if ($out && $this->outputProperty) {
-			//~ $this->project->setProperty($this->outputProperty, $out);
-		//~ }
-
-		if ($return != 0) {
-			throw new BuildException("Task exited with code $return and message: " . implode("\n", $output));
+		catch (Process\ExecException $e) {
+			return $this->catchException($e);
 		}
 	}
-
-
-
-
-	/**
-	 * Zpracuje výstup pro proměnnou.
-	 */
-	protected function formatOutputProperty($output, $loglevel)
-	{
-		return implode(PHP_EOL, $output);
-	}
-
 
 }
