@@ -332,25 +332,24 @@ abstract class SchemaManageBaseTask extends Task
 			$status = $this->catchException($e);
 		}
 
-		$outloglevel = $this->output ? Project::MSG_VERBOSE : Project::MSG_INFO;
-
-		if ($this->outputProperty) {
-			$this->project->setProperty($this->outputProperty, $this->formatOutput($status->content, $outloglevel) ?: '-');
+		if ($status->code != 0 && $this->checkreturn) {
+			throw new BuildException("Task exited with code {$status->code} and message: " . implode("\n", $status->content));
 		}
 
 		if ($this->returnProperty) {
 			$this->project->setProperty($this->returnProperty, $status->code);
 		}
 
+		$outloglevel = $this->output ? Project::MSG_VERBOSE : Project::MSG_INFO;
+
 		if ($status->content) {
 			$out = $this->formatOutput($status->content, $outloglevel);
 			if ($out) {
 				$this->log($out, $this->logLevel);
 			}
-		}
-
-		if ($status->code != 0 && $this->checkreturn) {
-			throw new BuildException("Task exited with code {$status->code} and message: " . implode("\n", $status->content));
+			if ($this->outputProperty) {
+				$this->project->setProperty($this->outputProperty, $out ?: '-');
+			}
 		}
 	}
 

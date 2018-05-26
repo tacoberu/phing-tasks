@@ -52,7 +52,7 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 	protected function formatOutput(array $output, $loglevel)
 	{
 		$match = array();
-		foreach ($output as $row) {
+		foreach ($output as $i => $row) {
 			if (strpos($row, ' minor verze') !== False) {
 				$match[] = $row;
 				continue;
@@ -62,16 +62,18 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 				$msg = $row;
 				continue;
 			}
+
+			if (strpos($row, '[Error statement]') !== False) {
+				return '[' . $this->database . ']: Error statement: ' . implode(PHP_EOL, array_slice($output, $i + 1));
+			}
 		}
 
+		// Jeden v sekci Repozitář, druhý v sekci Databáze.
 		if (count($match) != 2) {
-			return '[' . $this->database . ']: Invalid status of repository.';
+			return "[{$this->database}]: Invalid status of repository. {$msg}";
 		}
 		else if ($match[0] == $match[1]) {
-			if ($loglevel >= Project::MSG_VERBOSE) {
-				return '[' . $this->database . ']: Already up-to-date.';
-			}
-			return False;
+			return "[{$this->database}]: Already up-to-date. {$msg}";
 		}
 		else {
 			if (preg_match('([\d\-]+\s?$)', $match[0], $matches)) {
@@ -79,7 +81,7 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 				if (preg_match('([\d\-]+\s?$)', $match[1], $matches)) {
 					$m2 = $matches[0];
 					if ($m1 != '-' && $m2 != '-') {
-						return "[{$this->database}]: Diferent minor version: $m1 => $m2.";
+						return "[{$this->database}]: Diferent minor version: $m1 => $m2. {$msg}";
 					}
 					else if (isset($msg)) {
 						return '[' . $this->database . ']: Error: ' . $msg;
@@ -87,8 +89,23 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 				}
 			}
 		}
-		return '[' . $this->database . ']: Invalid format of status: ' . PHP_EOL . implode(PHP_EOL, $output);
+
+		return '[' . $this->database . ']: Invalid format of status: ' . implode(PHP_EOL, $output) . ' ' . $msg;
 	}
 
+
+
+	/**
+	 * @param Process\ExecException $e
+	 * @throw BuildException if code != 0
+	 * @return object {code, content}
+	 */
+	protected function catchException(\Exception $e)
+	{
+		return (object) array(
+			'code' => $e->getCode(),
+			'content' => explode(PHP_EOL, $e->getMessage()),
+		);
+	}
 
 }
