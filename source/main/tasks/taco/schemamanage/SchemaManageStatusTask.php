@@ -51,6 +51,7 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 	 */
 	protected function formatOutput(array $output, $loglevel)
 	{
+		$database = $this->database;
 		$match = array();
 		foreach ($output as $i => $row) {
 			if (strpos($row, ' minor verze') !== False) {
@@ -63,17 +64,22 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 				continue;
 			}
 
+			if (strpos($row, ' database:') !== False) {
+				$database = trim(substr($row, 10));
+				continue;
+			}
+
 			if (strpos($row, '[Error statement]') !== False) {
-				return '[' . $this->database . ']: Error statement: ' . implode(PHP_EOL, array_slice($output, $i + 1));
+				return '[' . $database . ']: Error statement: ' . implode(PHP_EOL, array_slice($output, $i + 1));
 			}
 		}
 
 		// Jeden v sekci Repozitář, druhý v sekci Databáze.
 		if (count($match) != 2) {
-			return "[{$this->database}]: Invalid status of repository. {$msg}";
+			return "[{$database}]: Schema is not installed. {$msg}";
 		}
 		else if ($match[0] == $match[1]) {
-			return "[{$this->database}]: Already up-to-date. {$msg}";
+			return "[{$database}]: Already up-to-date. {$msg}";
 		}
 		else {
 			if (preg_match('([\d\-]+\s?$)', $match[0], $matches)) {
@@ -81,16 +87,16 @@ class SchemaManageStatusTask extends SchemaManageBaseTask
 				if (preg_match('([\d\-]+\s?$)', $match[1], $matches)) {
 					$m2 = $matches[0];
 					if ($m1 != '-' && $m2 != '-') {
-						return "[{$this->database}]: Diferent minor version: $m1 => $m2. {$msg}";
+						return "[{$database}]: Diferent minor version: $m1 => $m2. {$msg}";
 					}
 					else if (isset($msg)) {
-						return '[' . $this->database . ']: Error: ' . $msg;
+						return '[' . $database . ']: Error: ' . $msg;
 					}
 				}
 			}
 		}
 
-		return '[' . $this->database . ']: Invalid format of status: ' . implode(PHP_EOL, $output) . ' ' . $msg;
+		return '[' . $database . ']: Invalid format of status: ' . implode(PHP_EOL, $output) . ' ' . $msg;
 	}
 
 
