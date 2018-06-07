@@ -8,6 +8,11 @@ require_once 'phing/Task.php';
  *			<match src='remote:ssh:10.18.10.6' to="johndee" />
  *		</taco.translate>
  *
+ *		<taco.translate src="${env.HG_URL}" default="unknow" property="repo.sender">
+ *			<match src='remote:ssh:10.18.0.6' to="martintakac" />
+ *			<match src='remote:ssh:10.18.10.6' to="johndee" />
+ *		</taco.translate>
+ *
  *		<taco.translate src="${env.HG_URL}" property="repo.sender" dictionary="dictionary.properties" />
  *
  * @author Martin Takáč <martin@takac.name>
@@ -40,6 +45,12 @@ class TacoTranslateTask extends Task
 	 * @var string
 	 */
 	private $src;
+
+
+	/**
+	 * @var string
+	 */
+	private $defaultValue;
 
 
 	/**
@@ -114,6 +125,16 @@ class TacoTranslateTask extends Task
 
 
 
+	/**
+	 * @param string
+	 */
+	function setDefault($val)
+	{
+		$this->defaultValue = $val;
+	}
+
+
+
 	function main()
 	{
         if (empty($this->src)) {
@@ -124,11 +145,13 @@ class TacoTranslateTask extends Task
             throw new BuildException("Attribute 'property' required", $this->getLocation());
         }
 
-		foreach ($this->loadFile($this->dictionary) as $key => $value) {
-			$this->createMatch()->setSrc($key)->setTo($value);
+		if ($this->dictionary) {
+			foreach ($this->loadFile($this->dictionary) as $key => $value) {
+				$this->createMatch()->setSrc($key)->setTo($value);
+			}
 		}
 
-		$contents = $this->src;
+		$contents = $this->defaultValue ?: $this->src;
 		foreach ($this->params as $row) {
 			if ($row->getSrc() == $this->src) {
 				$contents = $row->getTo();

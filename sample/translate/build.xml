@@ -19,6 +19,24 @@
     </target>
 
 
+    <target name="default">
+		<taco.translate src="x" default="Omega" property="out">
+ 			<match src='a' to="Alfa" />
+ 			<match src='b' to="Beta" />
+		</taco.translate>
+		<echo>${out}</echo>
+    </target>
+
+
+    <target name="noop">
+		<taco.translate src="x" property="out">
+ 			<match src='a' to="Alfa" />
+ 			<match src='b' to="Beta" />
+		</taco.translate>
+		<echo>${out}</echo>
+    </target>
+
+
     <target name="from-file">
 		<taco.translate src="a" property="out" dictionary="dictionary.properties" />
 		<echo>${out}</echo>
