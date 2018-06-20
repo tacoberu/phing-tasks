@@ -11,7 +11,7 @@
  *
  * @author	 Martin Takáč (martin@takac.name)
  */
- 
+
 require_once 'phing/Task.php';
 
 
@@ -21,13 +21,11 @@ require_once 'phing/Task.php';
 class TacoAutoloadTask extends Task
 {
 
-
-
 	/**
 	 * Autoload file.
 	 * @var PhingFile
 	 */
-	protected $file;
+	private $file;
 
 
 
@@ -35,15 +33,15 @@ class TacoAutoloadTask extends Task
      * Whether to log returned output as MSG_INFO instead of MSG_VERBOSE
      * @var boolean
      */
-    protected $logOutput = false;
-    
+    private $logOutput = false;
+
 
 
     /**
      * Logging level for status messages
      * @var integer
      */
-    protected $logLevel = Project::MSG_INFO;
+    private $logLevel = Project::MSG_INFO;
 
 
 
@@ -54,7 +52,7 @@ class TacoAutoloadTask extends Task
      *
      * @return void
      */
-    public function setLevel($level)
+    function setLevel($level)
     {
         switch ($level) {
         case 'error':
@@ -95,15 +93,13 @@ class TacoAutoloadTask extends Task
 	/**
 	 * executes the Composer task
 	 */
-	public function main()
+	function main()
 	{
-		if (empty($this->file) || ! (string)$this->file->getCanonicalFile()) {
+		if (empty($this->file) || ! (string) $this->file->getCanonicalFile()) {
 			throw new BuildException("'" . (string) $this->file . "' is not set.");
 		}
 
 		require_once $this->file->getCanonicalFile();
 	}
-
-
 
 }

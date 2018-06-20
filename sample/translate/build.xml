@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<project name="phing-tasks" basedir="." default="build">
+<project name="phing-tasks" basedir="." default="all">
 
 	<property file="./build.properties" override="true"/>
 	<property name="dir.data" value="./data"/>
@@ -10,12 +10,18 @@
 			classpath="${dir.source}/main"
 			/>
 
+
+    <target name="all"
+		depends="build, default, noop, from-file, from-file-with-default, from-file-complex"
+		/>
+
+
     <target name="build">
 		<taco.translate src="a" property="out">
  			<match src='a' to="Alfa" />
  			<match src='b' to="Beta" />
 		</taco.translate>
-		<echo>${out}</echo>
+		<echo>${out} == Alfa</echo>
     </target>
 
 
@@ -24,7 +30,7 @@
  			<match src='a' to="Alfa" />
  			<match src='b' to="Beta" />
 		</taco.translate>
-		<echo>${out}</echo>
+		<echo>${out} == Alfa</echo>
     </target>
 
 
@@ -33,14 +39,28 @@
  			<match src='a' to="Alfa" />
  			<match src='b' to="Beta" />
 		</taco.translate>
-		<echo>${out}</echo>
+		<echo>${out} == Alfa</echo>
     </target>
 
 
     <target name="from-file">
 		<taco.translate src="a" property="out" dictionary="dictionary.properties" />
-		<echo>${out}</echo>
+		<echo>${out} == Alfa</echo>
     </target>
+
+
+    <target name="from-file-with-default">
+		<taco.translate src="b" property="out" dictionary="dictionary.properties" default="Noop"/>
+		<echo>${out} == Alfa</echo>
+    </target>
+
+
+    <target name="from-file-complex">
+		<taco.translate src="remote:ssh:10.1.1.11" property="out" dictionary="dictionary2.properties" />
+		<echo>${out} == Gamma</echo>
+    </target>
+
+
 
 
 </project>
