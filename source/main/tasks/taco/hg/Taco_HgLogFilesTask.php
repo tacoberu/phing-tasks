@@ -48,6 +48,12 @@ class Taco_HgLogFilesTask extends Taco_HgBaseTask
 
 
 	/**
+	 * Only in the branch.
+	 */
+	private $branch;
+
+
+	/**
 	 * filter to be set
 	 * @var string $filter
 	 */
@@ -104,6 +110,16 @@ class Taco_HgLogFilesTask extends Taco_HgBaseTask
 
 
 
+	/**
+	 * @return this
+	 */
+	public function setBranch($value)
+	{
+		$this->branch = $value;
+		return $this;
+	}
+
+
 
 	/**
 	 * Creates a filterchain
@@ -145,13 +161,17 @@ class Taco_HgLogFilesTask extends Taco_HgBaseTask
 		}
 		$this->options['r'] = $r;
 
+		if ($this->branch) {
+			$this->options['b'] = $this->branch;
+		}
+
 		return parent::buildExecute();
 	}
 
 
 
 	/**
-	 * Zpracovat výstup. Rozprazsuje řádek, vyfiltruje jej zda je větší jak revize a naformátuje jej do výstupu.
+	 * Zpracovat výstup. Rozprazsuje řádek, vyfiltruje jej zda odpovídá podmínce a naformátuje jej do výstupu.
 	 *
 	 * @param array of string Položky branch + id:hash
 	 *
@@ -159,16 +179,16 @@ class Taco_HgLogFilesTask extends Taco_HgBaseTask
 	 */
 	protected function formatOutput(array $output)
 	{
+		//~ unset($output[count($output) - 1]);
+		$output = array_filter(array_unique(explode(' ', implode(' ', $output))));
+
 		$ret = array();
 		foreach ($output as $row) {
-			foreach (explode(' ', $row) as $x) {
-				$x = trim($x);
-				if (preg_match('~' . $this->filter . '~', $x)) {
-					$ret[] = $x;
-				}
+			if (preg_match('~' . $this->filter . '~', $row)) {
+				$ret[] = $row;
 			}
 		}
-		return implode(',', array_unique($ret));
+		return implode(',', $ret);
 	}
 
 }
