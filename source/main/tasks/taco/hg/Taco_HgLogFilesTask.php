@@ -32,7 +32,7 @@ class Taco_HgLogFilesTask extends Taco_HgBaseTask
 	 * Action to execute: status, update, install
 	 * @var string
 	 */
-	protected $action = 'log';
+	protected $action = 'diff';
 
 
 	/**
@@ -67,8 +67,8 @@ class Taco_HgLogFilesTask extends Taco_HgBaseTask
 	 * @var array
 	 */
 	protected $options = array(
-			'template' => '"{files} "',
-			);
+		'stat' => Null,
+	);
 
 
 
@@ -162,7 +162,7 @@ class Taco_HgLogFilesTask extends Taco_HgBaseTask
 		$this->options['r'] = $r;
 
 		if ($this->branch) {
-			$this->options['b'] = $this->branch;
+			//~ $this->options['b'] = $this->branch;
 		}
 
 		return parent::buildExecute();
@@ -179,8 +179,14 @@ class Taco_HgLogFilesTask extends Taco_HgBaseTask
 	 */
 	protected function formatOutput(array $output)
 	{
+		$output = array_map(function($x) {
+			list($x, ) = explode('|', $x, 2);
+			return trim($x);
+		}, $output);
+		array_pop($output);
 		//~ unset($output[count($output) - 1]);
-		$output = array_filter(array_unique(explode(' ', implode(' ', $output))));
+		//~ $output = array_filter(array_unique(explode(' ', implode(' ', $output))));
+		$output = array_filter(array_unique($output));
 
 		$ret = array();
 		foreach ($output as $row) {
