@@ -12,6 +12,7 @@
  * @author	 Martin Takáč (martin@takac.name)
  */
 
+require_once "phing/Task.php";
 require_once __dir__ . '/HgBaseTask.php';
 
 
